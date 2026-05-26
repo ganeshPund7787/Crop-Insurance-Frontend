@@ -1,10 +1,9 @@
 import api from "../lib/axios";
-import type { FarmerListItem } from "../types/admin.types";
+import type { FarmersListResponse } from "../types/admin.types";
 
 export const adminService = {
-  // ── Get all farmers ────────────────────────────────────
-  getAllFarmers: async (): Promise<FarmerListItem[]> => {
-    const { data } = await api.get<FarmerListItem[]>(
+  getAllFarmers: async (): Promise<FarmersListResponse> => {
+    const { data } = await api.get<FarmersListResponse>(
       "/api/admin/users/farmers",
     );
     return data;
