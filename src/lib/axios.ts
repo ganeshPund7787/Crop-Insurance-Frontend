@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
+  withCredentials: true, // ← ADD THIS for cookie support
   headers: {
     "Content-Type": "application/json",
   },

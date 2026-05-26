@@ -1,39 +1,30 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { ROLES, ROUTES } from "../../config/constants";
+import { ROLES } from "../../config/constants";
 
 interface RoleGuardProps {
-  allowedRole: number;
+  allowedRole: string;
 }
 
 export default function RoleGuard({ allowedRole }: RoleGuardProps) {
-  const { role } = useAuth();
-  console.log(
-    "RoleGuard → role:",
-    role,
-    typeof role,
-    "| allowedRole:",
-    allowedRole,
-    typeof allowedRole,
-  );
+  const { role, isAuthenticated, isLoading } = useAuth();
 
-  // No role in store yet
-  if (role === null || role === undefined) {
-    return <Navigate to="/login" replace />;
+  // Still hydrating — wait
+  if (isLoading) return null;
+
+  // Not authenticated — AuthGuard handles this
+  if (!isAuthenticated) return <Outlet />;
+
+  // Admin bypass
+  if (role === ROLES.ADMIN) return <Outlet />;
+
+  // Role matches
+  if (role === allowedRole) return <Outlet />;
+
+  // Farmer hitting admin route
+  if (role === ROLES.FARMER) {
+    return <Navigate to="/dashboard" replace />;
   }
 
-  // Exact match — let through
-  if (role === allowedRole) {
-    return <Outlet />;
-  }
-
-  // Wrong role — send to their correct home
-  switch (role) {
-    case ROLES.ADMIN:
-      return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />;
-    case ROLES.FARMER:
-      return <Navigate to={ROUTES.FARMER_DASHBOARD} replace />;
-    default:
-      return <Navigate to="/login" replace />;
-  }
+  return <Navigate to="/login" replace />;
 }

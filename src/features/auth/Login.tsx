@@ -1,11 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Leaf, LogIn, Mail, Lock } from "lucide-react";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,25 +18,18 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-import { useLoginMutation } from "../../hooks/useAuth";
-import { useAuth } from "../../hooks/useAuth";
+import { useLoginMutation, useAuth } from "../../hooks/useAuth";
 import { ROLES, ROUTES } from "../../config/constants";
 
-// ── Zod schema ─────────────────────────────────────────────
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Enter a valid email address"),
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
   password: z
     .string()
     .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters"),
+    .min(6, "Min 6 characters"),
 });
-
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// ── Animation variants ─────────────────────────────────────
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -45,7 +37,6 @@ const containerVariants = {
     transition: { staggerChildren: 0.08, delayChildren: 0.1 },
   },
 };
-
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
@@ -57,28 +48,32 @@ export default function Login() {
   const { mutate: login, isPending } = useLoginMutation();
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate(
-        role === ROLES.ADMIN ? ROUTES.ADMIN_DASHBOARD : ROUTES.FARMER_DASHBOARD,
-        { replace: true },
-      );
-
-      console.log("Inside Login Page: ", role)
-    }
-  }, [isAuthenticated, role, navigate]);
-
+  // ── ALL hooks must be called before any return ─────────
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
+  // ── Redirect if already authenticated ──────────────────
+  if (isAuthenticated) {
+    return (
+      <Navigate
+        to={
+          role === ROLES.ADMIN
+            ? ROUTES.ADMIN_DASHBOARD
+            : ROUTES.FARMER_DASHBOARD
+        }
+        replace
+      />
+    );
+  }
+
   function onSubmit(values: LoginFormValues) {
     login(values, {
-      onSuccess: (data) => {
+      onSuccess: (response) => {
+        const role = response.data.role;
         navigate(
-          data.user.role === ROLES.ADMIN
+          role === ROLES.ADMIN
             ? ROUTES.ADMIN_DASHBOARD
             : ROUTES.FARMER_DASHBOARD,
           { replace: true },
@@ -89,19 +84,16 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* ── Left panel — branding ── */}
+      {/* ── Left branding panel ── */}
       <motion.div
         className="hidden lg:flex flex-col justify-between w-[52%] bg-green-gradient p-12 relative overflow-hidden"
         initial={{ x: -60, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        {/* Background circles */}
         <div className="absolute top-[-80px] right-[-80px] w-[320px] h-[320px] rounded-full bg-white/5" />
         <div className="absolute bottom-[-60px] left-[-60px] w-[260px] h-[260px] rounded-full bg-white/5" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-white/[0.03]" />
 
-        {/* Logo */}
         <div className="flex items-center gap-3 relative z-10">
           <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
             <Leaf className="w-5 h-5 text-white" />
@@ -111,7 +103,6 @@ export default function Login() {
           </span>
         </div>
 
-        {/* Center content */}
         <motion.div
           className="relative z-10 space-y-6"
           initial={{ opacity: 0, y: 30 }}
@@ -130,8 +121,6 @@ export default function Login() {
             India's most trusted crop insurance platform — empowering farmers
             with smart risk intelligence.
           </p>
-
-          {/* Stats */}
           <div className="flex gap-8 pt-4">
             {[
               { value: "2.4L+", label: "Farmers" },
@@ -148,7 +137,6 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Bottom quote */}
         <div className="relative z-10 border-l-2 border-primary-400 pl-4">
           <p className="text-primary-200 text-sm italic">
             "Every seed deserves protection."
@@ -156,7 +144,7 @@ export default function Login() {
         </div>
       </motion.div>
 
-      {/* ── Right panel — form ── */}
+      {/* ── Right form panel ── */}
       <div className="flex-1 flex items-center justify-center p-6 bg-background">
         <motion.div
           className="w-full max-w-md"
@@ -164,7 +152,6 @@ export default function Login() {
           initial="hidden"
           animate="visible"
         >
-          {/* Mobile logo */}
           <motion.div
             variants={itemVariants}
             className="flex lg:hidden items-center gap-2 mb-8"
@@ -199,14 +186,13 @@ export default function Login() {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-5"
                 >
-                  {/* Email */}
                   <motion.div variants={itemVariants}>
                     <FormField
                       control={form.control}
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-foreground font-medium">
+                          <FormLabel className="font-medium">
                             Email Address
                           </FormLabel>
                           <FormControl>
@@ -214,7 +200,7 @@ export default function Login() {
                               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                               <Input
                                 placeholder="you@example.com"
-                                className="pl-10 h-11 bg-background border-input focus-visible:ring-primary-500"
+                                className="pl-10 h-11"
                                 type="email"
                                 autoComplete="email"
                                 {...field}
@@ -227,24 +213,21 @@ export default function Login() {
                     />
                   </motion.div>
 
-                  {/* Password */}
                   <motion.div variants={itemVariants}>
                     <FormField
                       control={form.control}
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex items-center justify-between">
-                            <FormLabel className="text-foreground font-medium">
-                              Password
-                            </FormLabel>
-                          </div>
+                          <FormLabel className="font-medium">
+                            Password
+                          </FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                               <Input
                                 placeholder="••••••••"
-                                className="pl-10 pr-10 h-11 bg-background border-input focus-visible:ring-primary-500"
+                                className="pl-10 pr-10 h-11"
                                 type={showPassword ? "text" : "password"}
                                 autoComplete="current-password"
                                 {...field}
@@ -268,12 +251,11 @@ export default function Login() {
                     />
                   </motion.div>
 
-                  {/* Submit */}
                   <motion.div variants={itemVariants} className="pt-1">
                     <Button
                       type="submit"
                       disabled={isPending}
-                      className="w-full h-11 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm rounded-lg transition-all duration-200 shadow-green-glow hover:shadow-none"
+                      className="w-full h-11 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-green-glow hover:shadow-none"
                     >
                       {isPending ? (
                         <span className="flex items-center gap-2">
@@ -297,7 +279,6 @@ export default function Login() {
                     </Button>
                   </motion.div>
 
-                  {/* Register link */}
                   <motion.p
                     variants={itemVariants}
                     className="text-center text-sm text-muted-foreground"

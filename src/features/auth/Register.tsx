@@ -175,7 +175,7 @@ export default function Register() {
     register(payload as any, {
       onSuccess: (data) => {
         navigate(
-          data.user.role === ROLES.ADMIN
+          data.data.role === ROLES.ADMIN
             ? ROUTES.ADMIN_DASHBOARD
             : ROUTES.FARMER_DASHBOARD,
           { replace: true },

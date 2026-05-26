@@ -1,29 +1,43 @@
 export interface Farm {
-  id: string;
-  name: string;
+  farmId: string;
+  farmName: string;
   location: string;
-  area: number;
+  areaInAcres: number;
   cropType: string;
   season?: string;
   soilType?: string;
+  state?: string;
+  district?: string;
   createdAt?: string;
 }
 
 export interface FarmerProfile {
-  id: string;
-  name: string;
+  userId: string;
+  fullName: string;
   email: string;
-  phone?: string;
-  address?: string;
-  farms: Farm[];
-  createdAt: string;
+  phoneNumber?: string;
+  aadhaarNumber?: string;
+  state?: string;
+  district?: string;
+  role: string;
+  createdAt?: string;
+  farms?: Farm[];
 }
 
 export interface AddFarmPayload {
-  name: string;
+  farmName: string;
   location: string;
-  area: number;
+  areaInAcres: number;
   cropType: string;
   season?: string;
   soilType?: string;
+  state?: string;
+  district?: string;
+}
+
+export interface FarmerProfileResponse {
+  success: boolean;
+  message: string;
+  data: FarmerProfile;
+  errors: string[];
 }

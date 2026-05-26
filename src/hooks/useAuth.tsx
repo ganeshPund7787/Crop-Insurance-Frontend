@@ -19,10 +19,9 @@ import { queryClient } from "../lib/queryClient";
 export function useAuth() {
   const dispatch = useDispatch<AppDispatch>();
   const auth = useSelector((state: RootState) => state.auth);
-  console.log("useAuth : ", auth.user);
+
   const isFarmer = auth.user?.role === ROLES.FARMER;
   const isAdmin = auth.user?.role === ROLES.ADMIN;
-  const isInsuranceAgent = auth.user?.role === ROLES.INSURANCE_AGENT;
 
   return {
     user: auth.user,
@@ -33,12 +32,11 @@ export function useAuth() {
     role: auth.user?.role ?? null,
     isFarmer,
     isAdmin,
-    isInsuranceAgent,
 
     setCredentials: (payload: {
       user: User;
       accessToken: string;
-      refreshToken: string;
+      refreshToken?: string;
     }) => dispatch(setCredentials(payload)),
 
     updateAccessToken: (token: string) => dispatch(updateAccessToken(token)),
@@ -51,24 +49,41 @@ export function useAuth() {
 
 // ── Query: Farmer profile ──────────────────────────────────
 export function useFarmerProfile() {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ["farmer", "profile"],
     queryFn: farmerService.getProfile,
+    enabled: isAuthenticated,
+    select: (res) => res.data, // unwrap → gives FarmerProfile directly
   });
 }
 
+// ── Mutation: Login ────────────────────────────────────────
 export function useLoginMutation() {
-  const { setCredentials } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
 
   return useMutation({
     mutationFn: authService.login,
-    onSuccess: (data) => {
-      setCredentials({
-        user: data.user,
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-      });
-      toast.success(`Welcome back, ${data.user.fullName}! 🌾`);
+    onSuccess: (response) => {
+      // Map API response → our User shape
+      const user: User = {
+        userId: response.data.userId,
+        fullName: response.data.fullName,
+        email: response.data.email,
+        role: response.data.role,
+      };
+
+      // accessToken comes from cookie — but save what we have
+      dispatch(
+        setCredentials({
+          user,
+          accessToken: response.data.userId, // cookie-based: store userId as ref
+          refreshToken: undefined,
+        }),
+      );
+
+      toast.success(`Welcome back, ${user.fullName}! 🌾`);
     },
     onError: (error: unknown) => {
       toast.error(getErrorMessage(error));
@@ -76,25 +91,36 @@ export function useLoginMutation() {
   });
 }
 
+// ── Mutation: Register ─────────────────────────────────────
 export function useRegisterMutation() {
-  const { setCredentials } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
 
   return useMutation({
-    mutationFn: (payload: import("../types/auth.types").RegisterPayload) =>
-      authService.register(payload),
-    onSuccess: (data) => {
-      setCredentials({
-        user: data.user,
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-      });
-      toast.success(`Welcome to CropShield, ${data.user.fullName}! 🌱`);
+    mutationFn: authService.register,
+    onSuccess: (response) => {
+      const user: User = {
+        userId: response.data.userId,
+        fullName: response.data.fullName,
+        email: response.data.email,
+        role: response.data.role,
+      };
+
+      dispatch(
+        setCredentials({
+          user,
+          accessToken: response.data.userId,
+          refreshToken: undefined,
+        }),
+      );
+
+      toast.success(`Welcome to CropShield, ${user.fullName}! 🌱`);
     },
     onError: (error: unknown) => {
       toast.error(getErrorMessage(error));
     },
   });
 }
+
 // ── Mutation: Change password ──────────────────────────────
 export function useChangePasswordMutation() {
   return useMutation({

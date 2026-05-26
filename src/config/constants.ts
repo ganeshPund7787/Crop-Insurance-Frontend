@@ -3,17 +3,9 @@ export const APP_NAME = import.meta.env.VITE_APP_NAME ?? "CropShield";
 export const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? "1.0.0";
 
 export const ROLES = {
-  ADMIN: 0,
-  FARMER: 1,
-  INSURANCE_AGENT: 2,
+  FARMER: "Farmer",
+  ADMIN: "Admin",
 } as const;
-
-// Maps ASP.NET string role → number
-export const ROLE_MAP: Record<string, number> = {
-  Admin: ROLES.ADMIN,
-  Farmer: ROLES.FARMER,
-  InsuranceAgent: ROLES.INSURANCE_AGENT,
-};
 
 export const TOKEN_KEYS = {
   ACCESS: "accessToken",

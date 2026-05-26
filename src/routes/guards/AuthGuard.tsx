@@ -1,11 +1,15 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store";
 
 export default function AuthGuard() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useSelector((s: RootState) => s.auth);
   const location = useLocation();
 
-  if (!isAuthenticated) {
+  // Has user object in Redux/localStorage = authenticated
+  const hasAuth = isAuthenticated && !!user;
+
+  if (!hasAuth) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

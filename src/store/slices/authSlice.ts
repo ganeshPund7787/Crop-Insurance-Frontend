@@ -3,12 +3,10 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AuthState, User } from "../../types/auth.types";
 import { TOKEN_KEYS } from "../../config/constants";
 
-// ── Helpers ────────────────────────────────────────────────
 function loadFromStorage<T>(key: string): T | null {
   try {
     const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return JSON.parse(raw) as T;
+    return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
@@ -21,7 +19,7 @@ function saveToStorage(key: string, value: unknown) {
       typeof value === "string" ? value : JSON.stringify(value),
     );
   } catch {
-    /* quota exceeded — silent fail */
+    /* quota exceeded */
   }
 }
 
@@ -31,7 +29,6 @@ function clearStorage() {
   );
 }
 
-// ── Initial state ──────────────────────────────────────────
 const initialState: AuthState = {
   user: loadFromStorage<User>("cropshield-user"),
   accessToken: localStorage.getItem(TOKEN_KEYS.ACCESS),
@@ -40,7 +37,6 @@ const initialState: AuthState = {
   isLoading: false,
 };
 
-// ── Slice ──────────────────────────────────────────────────
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -50,26 +46,19 @@ const authSlice = createSlice({
       action: PayloadAction<{
         user: User;
         accessToken: string;
-        refreshToken: string;
+        refreshToken?: string;
       }>,
     ) {
       const { user, accessToken, refreshToken } = action.payload;
-
-      // Force role to be a number — ASP.NET may return it as string
-      const normalizedUser: User = {
-        ...user,
-        role: Number(user.role),
-      };
-
-      state.user = normalizedUser;
+      state.user = user;
       state.accessToken = accessToken;
-      state.refreshToken = refreshToken;
+      state.refreshToken = refreshToken ?? null;
       state.isAuthenticated = true;
       state.isLoading = false;
 
       saveToStorage(TOKEN_KEYS.ACCESS, accessToken);
-      saveToStorage(TOKEN_KEYS.REFRESH, refreshToken);
-      saveToStorage("cropshield-user", normalizedUser);
+      if (refreshToken) saveToStorage(TOKEN_KEYS.REFRESH, refreshToken);
+      saveToStorage("cropshield-user", user);
     },
 
     updateAccessToken(state, action: PayloadAction<string>) {

@@ -1,10 +1,9 @@
 export interface User {
-  id: string;
+  userId: string;
   fullName: string;
   email: string;
-  phoneNumber?: string;
-  role: number; // we convert string → number internally
-  createdAt?: string;
+  role: string; // "Farmer" | "Admin" — string not number
+  accessTokenExpiresAtUtc?: string;
 }
 
 export interface AuthState {
@@ -13,24 +12,6 @@ export interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-}
-
-// ── Raw API response shape from ASP.NET ───────────────────
-export interface ApiAuthData {
-  userId: string;
-  fullName: string;
-  email: string;
-  role: string; // "Farmer" | "Admin" | "InsuranceAgent"
-  accessToken?: string;
-  refreshToken?: string;
-  accessTokenExpiresAtUtc?: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  errors: string[];
-  data: T;
 }
 
 export interface LoginPayload {
@@ -49,13 +30,23 @@ export interface RegisterPayload {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
+  success: boolean;
+  message: string;
+  data: {
+    userId: string;
+    fullName: string;
+    email: string;
+    role: string;
+    accessTokenExpiresAtUtc: string;
+  };
+  errors: string[];
 }
 
 export interface RefreshTokenResponse {
-  accessToken: string;
+  success: boolean;
+  data: {
+    accessToken: string;
+  };
 }
 
 export interface ChangePasswordPayload {
