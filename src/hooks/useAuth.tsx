@@ -8,7 +8,7 @@ import {
   updateAccessToken,
   setLoading,
 } from "../store/slices/authSlice";
-import type { User } from "../types/auth.types";
+import type { ChangePasswordPayload, User } from "../types/auth.types";
 import { ROLES } from "../config/constants";
 import { farmerService } from "../services/farmer.service";
 import { authService } from "../services/auth.service";
@@ -124,7 +124,8 @@ export function useRegisterMutation() {
 // ── Mutation: Change password ──────────────────────────────
 export function useChangePasswordMutation() {
   return useMutation({
-    mutationFn: authService.changePassword,
+    mutationFn: (payload: ChangePasswordPayload) =>
+      authService.changePassword(payload),
     onSuccess: () => {
       toast.success("Password changed successfully!");
     },

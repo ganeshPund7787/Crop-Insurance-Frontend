@@ -2,6 +2,7 @@ import { Moon, Sun, Bell, Menu } from "lucide-react";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,25 +12,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "../../hooks/useTheme";
 import { useAuth } from "../../hooks/useAuth";
-import { getInitials } from "../../lib/utils";
-import { ROUTES } from "../../config/constants";
 import { useLogout } from "../../hooks/useLogout";
+import { getInitials } from "../../lib/utils";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../config/constants";
 
-interface AdminHeaderProps {
+interface AgentHeaderProps {
   onMobileMenuOpen: () => void;
   pageTitle?: string;
 }
 
-export default function AdminHeader({
+export default function AgentHeader({
   onMobileMenuOpen,
   pageTitle,
-}: AdminHeaderProps) {
+}: AgentHeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const { user, logout, refreshToken } = useAuth();
-
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { handleLogout, isLoggingOut } = useLogout();
+  const navigate = useNavigate();
 
   return (
     <motion.header
@@ -38,6 +38,7 @@ export default function AdminHeader({
       transition={{ duration: 0.3 }}
       className="h-16 header-bg border-b border-border flex items-center justify-between px-4 lg:px-6 shrink-0"
     >
+      {/* Left */}
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
@@ -48,18 +49,20 @@ export default function AdminHeader({
           <Menu className="w-5 h-5" />
         </Button>
         {pageTitle && (
-          <h1 className="font-display text-lg font-bold text-foreground">
+          <h1 className="font-display text-lg font-bold text-foreground leading-none">
             {pageTitle}
           </h1>
         )}
       </div>
 
+      {/* Right */}
       <div className="flex items-center gap-2">
+        {/* Theme toggle */}
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
-          className="rounded-xl"
+          className="rounded-xl text-muted-foreground hover:text-foreground"
         >
           <motion.div
             key={theme}
@@ -75,6 +78,15 @@ export default function AdminHeader({
           </motion.div>
         </Button>
 
+        {/* Notifications */}
+        <Button variant="ghost" size="icon" className="rounded-xl relative">
+          <Bell className="w-5 h-5" />
+          <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center text-[10px] bg-primary-500 hover:bg-primary-500">
+            3
+          </Badge>
+        </Button>
+
+        {/* User dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-accent transition-colors outline-none">
@@ -85,10 +97,10 @@ export default function AdminHeader({
               </Avatar>
               <div className="hidden sm:block text-left">
                 <p className="text-sm font-semibold text-foreground leading-none">
-                  {user?.fullName ?? "Admin"}
+                  {user?.fullName ?? "Agent"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Administrator
+                  Insurance Agent
                 </p>
               </div>
             </button>
@@ -97,11 +109,16 @@ export default function AdminHeader({
           <DropdownMenuContent align="end" className="w-52">
             <div className="px-3 py-2">
               <p className="text-sm font-semibold">{user?.fullName}</p>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {user?.email}
+              </p>
             </div>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate(ROUTES.AGENT_PROFILE)}>
+              My Profile
+            </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => navigate(ROUTES.ADMIN_CHANGE_PASSWORD)}
+              onClick={() => navigate(ROUTES.AGENT_CHANGE_PASSWORD)}
             >
               Change Password
             </DropdownMenuItem>

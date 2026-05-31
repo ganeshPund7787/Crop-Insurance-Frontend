@@ -56,28 +56,24 @@ export default function Login() {
 
   // ── Redirect if already authenticated ──────────────────
   if (isAuthenticated) {
-    return (
-      <Navigate
-        to={
-          role === ROLES.ADMIN
-            ? ROUTES.ADMIN_DASHBOARD
-            : ROUTES.FARMER_DASHBOARD
-        }
-        replace
-      />
-    );
+    if (role === ROLES.ADMIN)
+      return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />;
+    if (role === ROLES.INSURANCE_AGENT)
+      return <Navigate to={ROUTES.AGENT_DASHBOARD} replace />;
+    return <Navigate to={ROUTES.FARMER_DASHBOARD} replace />;
   }
-
+  
   function onSubmit(values: LoginFormValues) {
     login(values, {
       onSuccess: (response) => {
         const role = response.data.role;
-        navigate(
-          role === ROLES.ADMIN
-            ? ROUTES.ADMIN_DASHBOARD
-            : ROUTES.FARMER_DASHBOARD,
-          { replace: true },
-        );
+        if (role === ROLES.ADMIN) {
+          navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+        } else if (role === ROLES.INSURANCE_AGENT) {
+          navigate(ROUTES.AGENT_DASHBOARD, { replace: true });
+        } else {
+          navigate(ROUTES.FARMER_DASHBOARD, { replace: true });
+        }
       },
     });
   }

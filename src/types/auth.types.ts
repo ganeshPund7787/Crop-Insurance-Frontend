@@ -52,5 +52,5 @@ export interface RefreshTokenResponse {
 export interface ChangePasswordPayload {
   currentPassword: string;
   newPassword: string;
-  confirmPassword: string;
+  confirmNewPassword: string; 
 }

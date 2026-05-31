@@ -2,7 +2,10 @@ import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
+  FileText,
+  ClipboardCheck,
   Users,
+  UserCircle,
   KeyRound,
   LogOut,
   Leaf,
@@ -18,42 +21,61 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "../../hooks/useAuth";
+import { useLogout } from "../../hooks/useLogout";
 import { ROUTES } from "../../config/constants";
 import { getInitials } from "../../lib/utils";
-import { useLogout } from "../../hooks/useLogout";
 
 const navItems = [
   {
     label: "Dashboard",
     icon: LayoutDashboard,
-    to: ROUTES.ADMIN_DASHBOARD,
+    to: ROUTES.AGENT_DASHBOARD,
     end: true,
+  },
+  {
+    label: "Claims",
+    icon: FileText,
+    to: ROUTES.AGENT_CLAIMS,
+    end: false,
+  },
+  {
+    label: "Inspections",
+    icon: ClipboardCheck,
+    to: ROUTES.AGENT_INSPECTIONS,
+    end: false,
   },
   {
     label: "Farmers",
     icon: Users,
-    to: ROUTES.ADMIN_FARMERS,
+    to: ROUTES.AGENT_FARMERS,
+    end: false,
+  },
+  {
+    label: "My Profile",
+    icon: UserCircle,
+    to: ROUTES.AGENT_PROFILE,
     end: false,
   },
   {
     label: "Change Password",
     icon: KeyRound,
-    to: ROUTES.ADMIN_CHANGE_PASSWORD,
+    to: ROUTES.AGENT_CHANGE_PASSWORD,
     end: false,
   },
 ];
 
-interface AdminSidebarProps {
+interface AgentSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
 }
 
-export default function AdminSidebar({
+export default function AgentSidebar({
   collapsed,
   onToggle,
-}: AdminSidebarProps) {
-  const { user, logout, refreshToken } = useAuth();
+}: AgentSidebarProps) {
+  const { user } = useAuth();
   const { handleLogout, isLoggingOut } = useLogout();
 
   return (
@@ -64,7 +86,7 @@ export default function AdminSidebar({
         className="relative flex flex-col h-screen sidebar-bg border-r"
         style={{ borderColor: "hsl(var(--sidebar-border))" }}
       >
-        {/* Logo */}
+        {/* ── Logo ── */}
         <div className="flex items-center h-16 px-4 gap-3 overflow-hidden">
           <div className="w-9 h-9 rounded-xl bg-primary-500/20 flex items-center justify-center shrink-0">
             <Leaf className="w-5 h-5 text-primary-400" />
@@ -80,7 +102,7 @@ export default function AdminSidebar({
                 <p className="font-display text-white text-base font-bold whitespace-nowrap">
                   CropShield
                 </p>
-                <p className="text-primary-400 text-xs">Admin Panel</p>
+                <p className="text-primary-400 text-xs">Agent Portal</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -88,10 +110,12 @@ export default function AdminSidebar({
 
         <Separator className="opacity-20" />
 
-        {/* Admin badge */}
+        {/* ── Agent card ── */}
         <div className="px-3 py-4">
           <div
-            className={`flex items-center gap-3 rounded-xl p-2 ${collapsed ? "justify-center" : ""}`}
+            className={`flex items-center gap-3 rounded-xl p-2 ${
+              collapsed ? "justify-center" : ""
+            }`}
             style={{ background: "hsl(var(--sidebar-hover))" }}
           >
             <Avatar className="w-9 h-9 shrink-0 ring-2 ring-primary-500/30">
@@ -106,15 +130,15 @@ export default function AdminSidebar({
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
+                  className="overflow-hidden flex-1 min-w-0"
                 >
-                  <p className="text-white text-sm font-semibold truncate max-w-[130px]">
-                    {user?.fullName ?? "Admin"}
+                  <p className="text-white text-sm font-semibold truncate">
+                    {user?.fullName ?? "Agent"}
                   </p>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <ShieldCheck className="w-3 h-3 text-primary-400" />
-                    <span className="text-primary-400 text-xs">
-                      Administrator
+                    <ShieldCheck className="w-3 h-3 text-primary-400 shrink-0" />
+                    <span className="text-primary-400 text-xs truncate">
+                      Insurance Agent
                     </span>
                   </div>
                 </motion.div>
@@ -123,7 +147,7 @@ export default function AdminSidebar({
           </div>
         </div>
 
-        {/* Nav */}
+        {/* ── Nav ── */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <TooltipProvider key={item.to} delayDuration={0}>
@@ -133,7 +157,8 @@ export default function AdminSidebar({
                     to={item.to}
                     end={item.end}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl
+                      transition-all duration-200 group
                       ${collapsed ? "justify-center" : ""}
                       ${
                         isActive
@@ -148,9 +173,10 @@ export default function AdminSidebar({
                     }
                   >
                     {({ isActive }) => (
-                      <div className="flex justify-start space-x-1">
+                      <div className="flex justify-start space-x-2">
                         <item.icon
-                          className={`w-5 h-5 shrink-0 transition-transform group-hover:scale-110
+                          className={`w-5 h-5 shrink-0 transition-transform
+                            group-hover:scale-110
                             ${isActive ? "text-white" : "text-primary-300"}`}
                         />
                         <AnimatePresence>
@@ -180,16 +206,29 @@ export default function AdminSidebar({
 
         <Separator className="opacity-20" />
 
-        {/* Logout */}
+        {/* ── Logout ── */}
         <div className="px-3 py-4">
           {collapsed ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center p-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
+                  disabled={isLoggingOut}
+                  className="w-full flex items-center justify-center p-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
                 >
-                  <LogOut className="w-5 h-5" />
+                  {isLoggingOut ? (
+                    <motion.span
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="w-5 h-5 border-2 border-red-400/30 border-t-red-400 rounded-full inline-block"
+                    />
+                  ) : (
+                    <LogOut className="w-5 h-5" />
+                  )}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right">Logout</TooltipContent>
@@ -197,17 +236,30 @@ export default function AdminSidebar({
           ) : (
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors group"
+              disabled={isLoggingOut}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors group disabled:opacity-50"
             >
-              <LogOut className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
+              {isLoggingOut ? (
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                  className="w-5 h-5 border-2 border-red-400/30 border-t-red-400 rounded-full inline-block shrink-0"
+                />
+              ) : (
+                <LogOut className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" />
+              )}
               <span className="text-sm font-medium whitespace-nowrap">
-                Logout
+                {isLoggingOut ? "Logging out..." : "Logout"}
               </span>
             </button>
           )}
         </div>
 
-        {/* Collapse toggle */}
+        {/* ── Collapse toggle ── */}
         <button
           onClick={onToggle}
           className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-primary-600 border-2 border-background flex items-center justify-center shadow-md hover:bg-primary-500 transition-colors z-10"

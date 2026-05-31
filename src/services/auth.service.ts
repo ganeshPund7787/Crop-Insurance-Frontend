@@ -27,9 +27,7 @@ export const authService = {
     return data;
   },
 
-  changePassword: async (
-    payload: Omit<ChangePasswordPayload, "confirmPassword">,
-  ): Promise<void> => {
+  changePassword: async (payload: ChangePasswordPayload): Promise<void> => {
     await api.put("/api/auth/change-password", payload);
   },
 
