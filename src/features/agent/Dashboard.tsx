@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import {
   FileText,
   ClipboardCheck,
-  Users,
   TrendingUp,
   ArrowRight,
   Clock,
@@ -22,7 +21,6 @@ import { ROUTES } from "../../config/constants";
 import { getInitials, formatINR } from "../../lib/utils";
 import Loader from "../../components/common/Loader";
 import dayjs from "dayjs";
-import type { ClaimStatus } from "../../types/agent.types";
 
 // ── Animation variants ─────────────────────────────────────
 const cardVariants = {
@@ -34,32 +32,42 @@ const cardVariants = {
   }),
 };
 
-// ── Status badge config ────────────────────────────────────
-export function ClaimStatusBadge({ status }: { status: ClaimStatus }) {
-  const config: Record<ClaimStatus, { label: string; className: string }> = {
-    Pending: {
-      label: "Pending",
-      className: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+// ── Status badge ───────────────────────────────────────────
+export function ClaimStatusBadge({ status }: { status: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    submitted: {
+      label: "Submitted",
+      className: "bg-yellow-500/10  text-yellow-600  dark:text-yellow-400",
     },
-    Assigned: {
+    underreview: {
+      label: "Under Review",
+      className: "bg-purple-500/10  text-purple-600  dark:text-purple-400",
+    },
+    assigned: {
       label: "Assigned",
-      className: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+      className: "bg-blue-500/10    text-blue-600    dark:text-blue-400",
     },
-    UnderInspection: {
+    underinspection: {
       label: "Under Inspection",
-      className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+      className: "bg-orange-500/10  text-orange-600  dark:text-orange-400",
     },
-    Approved: {
+    approved: {
       label: "Approved",
       className: "bg-primary-500/10 text-primary-600 dark:text-primary-400",
     },
-    Rejected: {
+    rejected: {
       label: "Rejected",
-      className: "bg-red-500/10 text-red-600 dark:text-red-400",
+      className: "bg-red-500/10     text-red-600     dark:text-red-400",
     },
-    Closed: { label: "Closed", className: "bg-muted text-muted-foreground" },
+    closed: { label: "Closed", className: "bg-muted text-muted-foreground" },
   };
-  const c = config[status] ?? config.Pending;
+
+  const key = status?.toLowerCase().trim();
+  const c = config[key] ?? {
+    label: status,
+    className: "bg-muted text-muted-foreground",
+  };
+
   return (
     <Badge variant="secondary" className={`text-xs font-medium ${c.className}`}>
       {c.label}
@@ -93,26 +101,33 @@ export default function AgentDashboard() {
   const inspections = inspectionsRes ?? [];
 
   // ── Derived stats ──────────────────────────────────────
-  const pendingClaims = claims.filter((c) => c.status === "Pending").length;
-  const assignedClaims = claims.filter((c) => c.status === "Assigned").length;
-  const underInspection = claims.filter(
-    (c) => c.status === "UnderInspection",
+  const submittedClaims = claims.filter(
+    (c) => c.status?.toLowerCase() === "submitted",
   ).length;
-  const approvedClaims = claims.filter((c) => c.status === "Approved").length;
+  const assignedClaims = claims.filter(
+    (c) => c.status?.toLowerCase() === "assigned",
+  ).length;
+  const underInspection = claims.filter(
+    (c) => c.status?.toLowerCase() === "underinspection",
+  ).length;
+  const approvedClaims = claims.filter(
+    (c) => c.status?.toLowerCase() === "approved",
+  ).length;
   const scheduledInspections = inspections.filter(
     (i) => i.status === "Scheduled",
   ).length;
+
   const recentClaims = [...claims]
     .sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime(),
     )
     .slice(0, 5);
 
   const stats = [
     {
-      label: "Pending Claims",
-      value: pendingClaims,
+      label: "Submitted Claims",
+      value: submittedClaims,
       icon: Clock,
       color: "text-yellow-500",
       bg: "bg-yellow-500/10",
@@ -170,8 +185,6 @@ export default function AgentDashboard() {
                 : "Welcome to CropShield Agent Portal"}
             </p>
           </div>
-
-          {/* Agent info chips */}
           <div className="flex flex-col gap-2">
             {profileRes?.agentCode && (
               <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5">
@@ -230,7 +243,7 @@ export default function AgentDashboard() {
 
       {/* ── Two column layout ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* ── Recent claims (2/3 width) ── */}
+        {/* Recent claims */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -282,15 +295,15 @@ export default function AgentDashboard() {
                           <ClaimStatusBadge status={claim.status} />
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {claim.farmerName} · {claim.cropType}
+                          {claim.farmerName} · {claim.cropName}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-bold text-foreground">
-                          {formatINR(claim.claimAmount)}
+                          {formatINR(claim.estimatedLossAmount)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {dayjs(claim.createdAt).format("DD MMM")}
+                          {dayjs(claim.createdAtUtc).format("DD MMM")}
                         </p>
                       </div>
                     </motion.div>
@@ -301,7 +314,7 @@ export default function AgentDashboard() {
           </Card>
         </motion.div>
 
-        {/* ── Right column ── */}
+        {/* Right column */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -326,13 +339,9 @@ export default function AgentDashboard() {
                   </p>
                 </div>
               </div>
-
               <div className="space-y-2">
                 {[
-                  {
-                    label: "License",
-                    value: profileRes?.licenseNumber ?? "—",
-                  },
+                  { label: "License", value: profileRes?.licenseNumber ?? "—" },
                   {
                     label: "District",
                     value: profileRes?.assignedDistrict ?? "—",
@@ -355,7 +364,6 @@ export default function AgentDashboard() {
                   </div>
                 ))}
               </div>
-
               <Button
                 size="sm"
                 variant="outline"

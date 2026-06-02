@@ -30,14 +30,44 @@ import Loader from "../../components/common/Loader";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
 
-const STATUS_OPTIONS: { value: string; label: string }[] = [
+// ── Status options for dropdown ────────────────────────────
+const STATUS_OPTIONS = [
   { value: "all", label: "All Status" },
-  { value: "Pending", label: "Pending" },
+  { value: "Submitted", label: "Submitted" },
   { value: "Assigned", label: "Assigned" },
   { value: "UnderInspection", label: "Under Inspection" },
   { value: "Approved", label: "Approved" },
   { value: "Rejected", label: "Rejected" },
   { value: "Closed", label: "Closed" },
+];
+
+// ── Status pills config ────────────────────────────────────
+const STATUS_PILLS = [
+  {
+    status: "Submitted",
+    display: "Submitted",
+    color: "bg-yellow-500/10  text-yellow-600  dark:text-yellow-400",
+  },
+  {
+    status: "Assigned",
+    display: "Assigned",
+    color: "bg-blue-500/10    text-blue-600    dark:text-blue-400",
+  },
+  {
+    status: "UnderInspection",
+    display: "Under Inspection",
+    color: "bg-orange-500/10  text-orange-600  dark:text-orange-400",
+  },
+  {
+    status: "Approved",
+    display: "Approved",
+    color: "bg-primary-500/10 text-primary-600 dark:text-primary-400",
+  },
+  {
+    status: "Rejected",
+    display: "Rejected",
+    color: "bg-red-500/10     text-red-600     dark:text-red-400",
+  },
 ];
 
 export default function AgentClaims() {
@@ -57,7 +87,7 @@ export default function AgentClaims() {
     select: (r) => r.data,
   });
 
-  // ── Assign claim mutation ──────────────────────────────
+  // ── Assign mutation ────────────────────────────────────
   const { mutate: assignClaim, isPending: isAssigning } = useMutation({
     mutationFn: (id: string) => agentService.assignClaim(id),
     onSuccess: () => {
@@ -67,32 +97,35 @@ export default function AgentClaims() {
     onError: () => toast.error("Failed to assign claim"),
   });
 
-  // ── Filter + search ────────────────────────────────────
-  const filtered = (claims ?? []).filter((claim) => {
-    const q = search.toLowerCase();
-    const matchSearch =
-      claim.claimNumber.toLowerCase().includes(q) ||
-      claim.farmerName.toLowerCase().includes(q) ||
-      claim.cropType.toLowerCase().includes(q) ||
-      claim.district.toLowerCase().includes(q);
-    const matchStatus = statusFilter === "all" || claim.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
-
   // ── Status counts ──────────────────────────────────────
   const counts = (claims ?? []).reduce(
     (acc, c) => {
-      acc[c.status] = (acc[c.status] ?? 0) + 1;
+      const key = c.status?.toLowerCase().trim();
+      acc[key] = (acc[key] ?? 0) + 1;
       return acc;
     },
     {} as Record<string, number>,
   );
 
+  // ── Filter ─────────────────────────────────────────────
+  const filtered = (claims ?? []).filter((claim) => {
+    const q = search.toLowerCase();
+    const matchSearch =
+      claim.claimNumber.toLowerCase().includes(q) ||
+      claim.farmerName.toLowerCase().includes(q) ||
+      claim.cropName.toLowerCase().includes(q) ||
+      claim.district.toLowerCase().includes(q);
+    const matchStatus =
+      statusFilter === "all" ||
+      claim.status?.toLowerCase() === statusFilter.toLowerCase();
+    return matchSearch && matchStatus;
+  });
+
   if (isLoading) return <Loader />;
 
   return (
     <div className="space-y-5">
-      {/* ── Page header ── */}
+      {/* ── Header ── */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -120,49 +153,32 @@ export default function AgentClaims() {
         </Button>
       </motion.div>
 
-      {/* ── Status summary pills ── */}
+      {/* ── Status pills ── */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
         className="flex gap-2 flex-wrap"
       >
-        {[
-          {
-            status: "Pending",
-            color: "bg-yellow-500/10  text-yellow-600  dark:text-yellow-400",
-          },
-          {
-            status: "Assigned",
-            color: "bg-blue-500/10    text-blue-600    dark:text-blue-400",
-          },
-          {
-            status: "UnderInspection",
-            color: "bg-orange-500/10  text-orange-600  dark:text-orange-400",
-          },
-          {
-            status: "Approved",
-            color: "bg-primary-500/10 text-primary-600 dark:text-primary-400",
-          },
-          {
-            status: "Rejected",
-            color: "bg-red-500/10     text-red-600     dark:text-red-400",
-          },
-        ].map((s) => (
+        {STATUS_PILLS.map((s) => (
           <button
             key={s.status}
             onClick={() =>
-              setStatusFilter(statusFilter === s.status ? "all" : s.status)
+              setStatusFilter(
+                statusFilter.toLowerCase() === s.status.toLowerCase()
+                  ? "all"
+                  : s.status,
+              )
             }
             className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all
               ${
-                statusFilter === s.status
+                statusFilter.toLowerCase() === s.status.toLowerCase()
                   ? `${s.color} border-current`
                   : "border-border text-muted-foreground hover:border-current"
               }`}
           >
-            {s.status === "UnderInspection" ? "Under Inspection" : s.status}
-            {counts[s.status] ? ` (${counts[s.status]})` : " (0)"}
+            {s.display}
+            {` (${counts[s.status.toLowerCase()] ?? 0})`}
           </button>
         ))}
       </motion.div>
@@ -230,7 +246,7 @@ export default function AgentClaims() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
             >
-              <Card className="border-border hover:border-primary-500/30 hover:shadow-card transition-all group">
+              <Card className="border-border hover:border-primary-500/30 hover:shadow-card transition-all">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
                     {/* Icon */}
@@ -238,7 +254,7 @@ export default function AgentClaims() {
                       <FileText className="w-5 h-5 text-primary-500" />
                     </div>
 
-                    {/* Main info */}
+                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 flex-wrap">
                         <div>
@@ -253,15 +269,15 @@ export default function AgentClaims() {
                           </p>
                         </div>
                         <p className="font-display text-lg font-bold text-foreground shrink-0">
-                          {formatINR(claim.claimAmount)}
+                          {formatINR(claim.estimatedLossAmount)}
                         </p>
                       </div>
 
-                      {/* Details row */}
+                      {/* Details */}
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Wheat className="w-3 h-3" />
-                          {claim.cropType}
+                          {claim.cropName}
                         </span>
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
                           <MapPin className="w-3 h-3" />
@@ -272,7 +288,7 @@ export default function AgentClaims() {
                         </span>
                       </div>
 
-                      {/* Actions row */}
+                      {/* Actions */}
                       <div className="flex items-center gap-2 mt-3 flex-wrap">
                         <Button
                           size="sm"
@@ -284,7 +300,7 @@ export default function AgentClaims() {
                           <ArrowRight className="w-3 h-3" />
                         </Button>
 
-                        {claim.status === "Pending" && (
+                        {claim.status?.toLowerCase() === "submitted" && (
                           <Button
                             size="sm"
                             className="h-8 text-xs bg-primary-600 hover:bg-primary-700 text-white gap-1.5"
@@ -333,7 +349,10 @@ export default function AgentClaims() {
                   </span>
                   <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
                     {formatINR(
-                      filtered.reduce((acc, c) => acc + c.claimAmount, 0),
+                      filtered.reduce(
+                        (acc, c) => acc + (c.estimatedLossAmount ?? 0),
+                        0,
+                      ),
                     )}
                   </span>
                 </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -17,9 +17,11 @@ import {
   Clock,
   AlertCircle,
   Loader2,
+  Droplets,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -83,7 +85,7 @@ type InspectionForm = z.infer<typeof inspectionSchema>;
 type FindingsForm = z.infer<typeof findingsSchema>;
 type ApproveForm = z.infer<typeof approveSchema>;
 
-// ── Info row ───────────────────────────────────────────────
+// ── Detail row ─────────────────────────────────────────────
 function DetailRow({
   icon: Icon,
   label,
@@ -103,7 +105,7 @@ function DetailRow({
       <div className="flex-1 min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p
-          className={`text-sm font-semibold mt-0.5 ${
+          className={`text-sm font-semibold mt-0.5 truncate ${
             highlight
               ? "text-primary-600 dark:text-primary-400"
               : "text-foreground"
@@ -121,7 +123,6 @@ export default function AgentClaimDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // ── Dialog states ──────────────────────────────────────
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [findingsOpen, setFindingsOpen] = useState(false);
   const [approveOpen, setApproveOpen] = useState(false);
@@ -134,17 +135,31 @@ export default function AgentClaimDetail() {
     select: (r) => r.data,
   });
 
-  // ── Mutations ──────────────────────────────────────────
+  // ── Helpers ────────────────────────────────────────────
+  // Get the latest scheduled inspection (for findings)
+  const scheduledInspection = claim?.inspections?.find(
+    (i) => i.status === "Scheduled",
+  );
+  const latestInspection =
+    claim?.inspections?.[(claim.inspections.length ?? 1) - 1];
+
+  function invalidate() {
+    queryClient.invalidateQueries({ queryKey: ["agent", "claim", id] });
+    queryClient.invalidateQueries({ queryKey: ["agent", "claims"] });
+    queryClient.invalidateQueries({ queryKey: ["agent", "inspections"] });
+  }
+
+  // ── Assign ─────────────────────────────────────────────
   const { mutate: assignClaim, isPending: isAssigning } = useMutation({
     mutationFn: () => agentService.assignClaim(id!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["agent", "claim", id] });
-      queryClient.invalidateQueries({ queryKey: ["agent", "claims"] });
+      invalidate();
       toast.success("Claim assigned to you!");
     },
     onError: () => toast.error("Failed to assign claim"),
   });
 
+  // ── Schedule inspection ────────────────────────────────
   const { mutate: scheduleInspection, isPending: isScheduling } = useMutation({
     mutationFn: (payload: InspectionForm) =>
       agentService.scheduleInspection(id!, {
@@ -152,32 +167,39 @@ export default function AgentClaimDetail() {
         notes: payload.notes,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["agent", "claim", id] });
-      queryClient.invalidateQueries({ queryKey: ["agent", "inspections"] });
-      toast.success("Inspection scheduled successfully!");
+      invalidate();
+      toast.success("Inspection scheduled!");
       setInspectionOpen(false);
       inspectionForm.reset();
     },
     onError: () => toast.error("Failed to schedule inspection"),
   });
 
+  // ── Submit findings ────────────────────────────────────
+  // ✅ Uses scheduledInspection.id — NOT claim id
   const { mutate: submitFindings, isPending: isSubmittingFindings } =
     useMutation({
-      mutationFn: (payload: FindingsForm) =>
-        agentService.updateInspectionFindings(id!, {
-          findings: payload.findings,
-          recommendation: payload.recommendation,
-        }),
+      mutationFn: (payload: FindingsForm) => {
+        if (!scheduledInspection)
+          throw new Error("No scheduled inspection found");
+        return agentService.updateInspectionFindings(
+          scheduledInspection.id, // ✅ inspection ID
+          {
+            findings: payload.findings,
+            recommendation: payload.recommendation,
+          },
+        );
+      },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["agent", "claim", id] });
-        queryClient.invalidateQueries({ queryKey: ["agent", "inspections"] });
-        toast.success("Inspection findings submitted!");
+        invalidate();
+        toast.success("Findings submitted!");
         setFindingsOpen(false);
         findingsForm.reset();
       },
       onError: () => toast.error("Failed to submit findings"),
     });
 
+  // ── Approve claim ──────────────────────────────────────
   const { mutate: approveClaim, isPending: isApproving } = useMutation({
     mutationFn: (payload: ApproveForm) =>
       agentService.approveClaim(id!, {
@@ -185,9 +207,8 @@ export default function AgentClaimDetail() {
         remarks: payload.remarks,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["agent", "claim", id] });
-      queryClient.invalidateQueries({ queryKey: ["agent", "claims"] });
-      toast.success("Claim approved successfully!");
+      invalidate();
+      toast.success("Claim approved!");
       setApproveOpen(false);
       approveForm.reset();
     },
@@ -207,10 +228,7 @@ export default function AgentClaimDetail() {
 
   const approveForm = useForm<ApproveForm>({
     resolver: zodResolver(approveSchema),
-    defaultValues: {
-      approvedAmount: claim?.claimAmount?.toString() ?? "",
-      remarks: "",
-    },
+    defaultValues: { approvedAmount: "", remarks: "" },
   });
 
   if (isLoading) return <Loader />;
@@ -227,12 +245,14 @@ export default function AgentClaimDetail() {
     );
   }
 
-  // ── Which actions to show based on status ──────────────
-  const canAssign = claim.status === "Pending";
-  const canSchedule = claim.status === "Assigned";
-  const canAddFindings = claim.status === "UnderInspection";
-  const canApprove = claim.status === "UnderInspection";
-  const isTerminal = ["Approved", "Rejected", "Closed"].includes(claim.status);
+  // ── Action visibility ──────────────────────────────────
+  // ── Action visibility ──────────────────────────────────
+  const status = claim.status?.toLowerCase().trim();
+  const canAssign = status === "submitted"; // ← was 'pending'
+  const canSchedule = status === "assigned";
+  const canAddFindings = status === "underinspection" && !!scheduledInspection;
+  const canApprove = status === "underinspection";
+  const isTerminal = ["approved", "rejected", "closed"].includes(status);
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
@@ -258,17 +278,17 @@ export default function AgentClaimDetail() {
             <ClaimStatusBadge status={claim.status} />
           </div>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Filed on {dayjs(claim.createdAt).format("DD MMMM YYYY")}
+            Filed on {dayjs(claim.createdAtUtc).format("DD MMMM YYYY, hh:mm A")}
           </p>
         </div>
       </motion.div>
 
-      {/* ── Action buttons ── */}
+      {/* ── Actions bar ── */}
       {!isTerminal && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.08 }}
         >
           <Card className="border-border bg-muted/30">
             <CardContent className="p-4">
@@ -322,7 +342,7 @@ export default function AgentClaimDetail() {
                     onClick={() => {
                       approveForm.setValue(
                         "approvedAmount",
-                        claim.claimAmount?.toString() ?? "",
+                        claim.estimatedLossAmount?.toString() ?? "",
                       );
                       setApproveOpen(true);
                     }}
@@ -339,11 +359,11 @@ export default function AgentClaimDetail() {
 
       {/* ── Two column layout ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* ── Claim info ── */}
+        {/* Claim info */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.12 }}
         >
           <Card className="border-border h-full">
             <CardHeader className="pb-2">
@@ -360,39 +380,54 @@ export default function AgentClaimDetail() {
                   value={claim.claimNumber}
                 />
                 <DetailRow
+                  icon={Droplets}
+                  label="Damage Type"
+                  value={claim.damageType}
+                />
+                <DetailRow
                   icon={IndianRupee}
-                  label="Claimed Amount"
-                  value={formatINR(claim.claimAmount)}
+                  label="Estimated Loss"
+                  value={formatINR(claim.estimatedLossAmount)}
                   highlight
                 />
-                <DetailRow
-                  icon={AlertCircle}
-                  label="Incident Date"
-                  value={dayjs(claim.incidentDate).format("DD MMMM YYYY")}
-                />
-                <DetailRow
-                  icon={Clock}
-                  label="Filed On"
-                  value={dayjs(claim.createdAt).format("DD MMMM YYYY")}
-                />
-                {claim.approvedAmount && (
+                {claim.approvedAmount ? (
                   <DetailRow
                     icon={CheckCircle}
                     label="Approved Amount"
                     value={formatINR(claim.approvedAmount)}
                     highlight
                   />
-                )}
+                ) : null}
+                <DetailRow
+                  icon={AlertCircle}
+                  label="Incident Date"
+                  value={dayjs(claim.incidentDate).format("DD MMM YYYY")}
+                />
+                <DetailRow
+                  icon={Clock}
+                  label="Filed On"
+                  value={dayjs(claim.createdAtUtc).format("DD MMM YYYY")}
+                />
               </div>
 
-              {/* Description */}
-              {claim.description && (
-                <div className="mt-4 p-3 rounded-xl bg-muted/40 border border-border">
+              {claim.damageDescription && (
+                <div className="mt-3 p-3 rounded-xl bg-muted/40 border border-border">
                   <p className="text-xs font-semibold text-muted-foreground mb-1">
-                    Description
+                    Damage Description
                   </p>
                   <p className="text-sm text-foreground leading-relaxed">
-                    {claim.description}
+                    {claim.damageDescription}
+                  </p>
+                </div>
+              )}
+
+              {claim.agentRemarks && (
+                <div className="mt-2 p-3 rounded-xl bg-primary-500/5 border border-primary-500/20">
+                  <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 mb-1">
+                    Agent Remarks
+                  </p>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {claim.agentRemarks}
                   </p>
                 </div>
               )}
@@ -400,17 +435,17 @@ export default function AgentClaimDetail() {
           </Card>
         </motion.div>
 
-        {/* ── Farmer + Farm info ── */}
+        {/* Farmer + farm info */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.17 }}
         >
           <Card className="border-border h-full">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-display flex items-center gap-2">
                 <User className="w-4 h-4 text-primary-500" />
-                Farmer & Farm Details
+                Farmer & Crop Details
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5">
@@ -420,87 +455,135 @@ export default function AgentClaimDetail() {
                   label="Farmer Name"
                   value={claim.farmerName}
                 />
-                {claim.farmerEmail && (
-                  <DetailRow
-                    icon={User}
-                    label="Email"
-                    value={claim.farmerEmail}
-                  />
-                )}
-                {claim.farmerPhone && (
-                  <DetailRow
-                    icon={User}
-                    label="Phone"
-                    value={claim.farmerPhone}
-                  />
-                )}
                 <DetailRow
-                  icon={MapPin}
-                  label="Farm Location"
-                  value={claim.farmLocation ?? claim.district}
+                  icon={User}
+                  label="Email"
+                  value={claim.farmerEmail}
                 />
-                {claim.farmArea && (
-                  <DetailRow
-                    icon={MapPin}
-                    label="Farm Area"
-                    value={`${claim.farmArea} acres`}
-                  />
-                )}
                 <DetailRow
-                  icon={Wheat}
-                  label="Crop Type"
-                  value={claim.cropType}
+                  icon={User}
+                  label="Phone"
+                  value={claim.farmerPhone}
                 />
                 <DetailRow
                   icon={MapPin}
                   label="District"
                   value={claim.district}
                 />
+                {claim.village && (
+                  <DetailRow
+                    icon={MapPin}
+                    label="Village"
+                    value={claim.village}
+                  />
+                )}
+                <DetailRow icon={Wheat} label="Crop" value={claim.cropName} />
+                {claim.season && (
+                  <DetailRow
+                    icon={Calendar}
+                    label="Season"
+                    value={claim.season}
+                  />
+                )}
+                {claim.expectedYieldTons && (
+                  <DetailRow
+                    icon={Wheat}
+                    label="Expected Yield"
+                    value={`${claim.expectedYieldTons} tons`}
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
         </motion.div>
       </div>
 
-      {/* ── Inspection findings ── */}
-      {claim.findings && (
+      {/* ── Inspections list ── */}
+      {claim.inspections && claim.inspections.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.22 }}
         >
-          <Card className="border border-primary-500/20">
+          <Card className="border-border">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-display flex items-center gap-2">
                 <ClipboardCheck className="w-4 h-4 text-primary-500" />
-                Inspection Findings
+                Inspections
+                <Badge
+                  variant="secondary"
+                  className="ml-auto text-xs bg-primary-500/10 text-primary-600 dark:text-primary-400"
+                >
+                  {claim.inspections.length}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-5">
-              {claim.inspectionDate && (
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Inspected on{" "}
-                    {dayjs(claim.inspectionDate).format("DD MMMM YYYY")}
-                  </span>
+            <CardContent className="px-5 pb-5 space-y-3">
+              {claim.inspections.map((ins, i) => (
+                <div
+                  key={ins.id}
+                  className="p-4 rounded-xl border border-border bg-muted/20"
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-foreground">
+                        {ins.inspectionNumber}
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs ${
+                          ins.status === "Completed"
+                            ? "bg-primary-500/10 text-primary-600 dark:text-primary-400"
+                            : ins.status === "Scheduled"
+                              ? "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+                              : "bg-red-500/10 text-red-600"
+                        }`}
+                      >
+                        {ins.status}
+                      </Badge>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {dayjs(ins.scheduledAtUtc).format("DD MMM YYYY")}
+                    </span>
+                  </div>
+
+                  {ins.location && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
+                      <MapPin className="w-3 h-3" />
+                      {ins.location}
+                    </p>
+                  )}
+
+                  {ins.findings && (
+                    <div className="mt-2 p-3 rounded-lg bg-primary-500/5 border border-primary-500/20">
+                      <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 mb-1">
+                        Findings
+                      </p>
+                      <p className="text-xs text-foreground leading-relaxed">
+                        {ins.findings}
+                      </p>
+                      {ins.damagePercentage != null && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Damage: {ins.damagePercentage}% — Recommended:{" "}
+                          {ins.recommendedAmount
+                            ? formatINR(ins.recommendedAmount)
+                            : "—"}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
-              <div className="p-4 rounded-xl bg-primary-500/5 border border-primary-500/20">
-                <p className="text-sm text-foreground leading-relaxed">
-                  {claim.findings}
-                </p>
-              </div>
+              ))}
             </CardContent>
           </Card>
         </motion.div>
       )}
 
-      {/* ══════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════
           DIALOGS
-      ══════════════════════════════════════════════════ */}
+      ══════════════════════════════════════════ */}
 
-      {/* ── Schedule Inspection dialog ── */}
+      {/* Schedule Inspection */}
       <Dialog open={inspectionOpen} onOpenChange={setInspectionOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -524,8 +607,7 @@ export default function AgentClaimDetail() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="font-medium">
-                      Inspection Date & Time{" "}
-                      <span className="text-destructive">*</span>
+                      Date & Time <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -552,7 +634,7 @@ export default function AgentClaimDetail() {
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Any specific instructions or notes..."
+                        placeholder="Any specific instructions..."
                         className="resize-none h-24"
                         {...field}
                       />
@@ -587,7 +669,7 @@ export default function AgentClaimDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Inspection Findings dialog ── */}
+      {/* Add Findings */}
       <Dialog open={findingsOpen} onOpenChange={setFindingsOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -595,9 +677,24 @@ export default function AgentClaimDetail() {
               Add Inspection Findings
             </DialogTitle>
             <DialogDescription>
-              Submit your field inspection findings for {claim.claimNumber}
+              {scheduledInspection?.inspectionNumber} — {claim.claimNumber}
             </DialogDescription>
           </DialogHeader>
+
+          {scheduledInspection && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/40 border border-border">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Scheduled</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {dayjs(scheduledInspection.scheduledAtUtc).format(
+                    "DD MMM YYYY, hh:mm A",
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
+
           <Form {...findingsForm}>
             <form
               onSubmit={findingsForm.handleSubmit((d) => submitFindings(d))}
@@ -613,7 +710,7 @@ export default function AgentClaimDetail() {
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe your field observations in detail..."
+                        placeholder="Describe field observations in detail..."
                         className="resize-none h-32"
                         {...field}
                       />
@@ -668,9 +765,15 @@ export default function AgentClaimDetail() {
                   className="flex-1 bg-primary-600 hover:bg-primary-700 text-white"
                 >
                   {isSubmittingFindings ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Submitting...
+                    </span>
                   ) : (
-                    "Submit Findings"
+                    <span className="flex items-center gap-2">
+                      <ClipboardCheck className="w-4 h-4" />
+                      Submit Findings
+                    </span>
                   )}
                 </Button>
               </div>
@@ -679,25 +782,35 @@ export default function AgentClaimDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Approve Claim dialog ── */}
+      {/* Approve Claim */}
       <Dialog open={approveOpen} onOpenChange={setApproveOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="font-display">Approve Claim</DialogTitle>
             <DialogDescription>
-              Confirm the approved amount for {claim.claimNumber}
+              Confirm approved amount for {claim.claimNumber}
             </DialogDescription>
           </DialogHeader>
 
-          {/* Claim summary */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border">
             <span className="text-sm text-muted-foreground">
-              Claimed Amount
+              Estimated Loss
             </span>
             <span className="font-bold text-foreground">
-              {formatINR(claim.claimAmount)}
+              {formatINR(claim.estimatedLossAmount)}
             </span>
           </div>
+
+          {latestInspection?.recommendedAmount && (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-primary-500/5 border border-primary-500/20">
+              <span className="text-sm text-muted-foreground">
+                Inspector Recommended
+              </span>
+              <span className="font-bold text-primary-600 dark:text-primary-400">
+                {formatINR(latestInspection.recommendedAmount)}
+              </span>
+            </div>
+          )}
 
           <Form {...approveForm}>
             <form
@@ -742,8 +855,8 @@ export default function AgentClaimDetail() {
                     </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Any remarks for approval..."
-                        className="resize-none h-24"
+                        placeholder="Remarks for approval..."
+                        className="resize-none h-20"
                         {...field}
                       />
                     </FormControl>
