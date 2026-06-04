@@ -14,11 +14,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { useFarmerProfile } from "../../hooks/useAuth";
 import { getInitials } from "../../lib/utils";
 import Loader from "../../components/common/Loader";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 // ── Animation ──────────────────────────────────────────────
 const cardVariants = {
@@ -68,7 +68,7 @@ function InfoRow({
 
 export default function FarmerProfile() {
   const { data: profile, isLoading, isError } = useFarmerProfile();
-
+  const navigate = useNavigate();
   if (isLoading) return <Loader />;
 
   if (isError || !profile) {
@@ -299,7 +299,10 @@ export default function FarmerProfile() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.08 }}
-                    className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary-500/30 hover:bg-accent/40 transition-all"
+                    onClick={() =>
+                      navigate(`/dashboard/farms/${farm.farmId}/crops`)
+                    }
+                    className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary-500/30 hover:bg-accent/40 transition-all cursor-pointer group"
                   >
                     <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center shrink-0">
                       <Sprout className="w-5 h-5 text-primary-500" />
@@ -339,7 +342,9 @@ export default function FarmerProfile() {
                       <p className="text-sm font-bold text-foreground">
                         {farm.areaInAcres} ac
                       </p>
-                      <p className="text-xs text-muted-foreground">area</p>
+                      <p className="text-xs text-primary-500 group-hover:underline mt-0.5">
+                        View Crops →
+                      </p>
                     </div>
                   </motion.div>
                 ))}

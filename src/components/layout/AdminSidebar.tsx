@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  Brain,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -40,6 +41,12 @@ const navItems = [
     label: "Change Password",
     icon: KeyRound,
     to: ROUTES.ADMIN_CHANGE_PASSWORD,
+    end: false,
+  },
+  {
+    label: "AI Analysis",
+    icon: Brain,
+    to: ROUTES.ADMIN_AI_ANALYSIS,
     end: false,
   },
 ];

@@ -13,8 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { useFarmerProfile } from "../../hooks/useAuth";
-import { useAuth } from "../../hooks/useAuth";
+import { useFarmerProfile, useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../config/constants";
 import Loader from "../../components/common/Loader";
 
@@ -43,7 +42,11 @@ export default function FarmerDashboard() {
     },
     {
       label: "Insured Area",
-      value: `${profile?.farms?.reduce((acc, f) => acc + (f.areaInAcres ?? 0), 0).toFixed(1) ?? 0} ha`,
+      value: `${
+        profile?.farms
+          ?.reduce((acc, f) => acc + (f.areaInAcres ?? 0), 0)
+          .toFixed(1) ?? 0
+      } ac`,
       icon: Shield,
       color: "text-blue-500",
       bg: "bg-blue-500/10",
@@ -172,40 +175,54 @@ export default function FarmerDashboard() {
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 + i * 0.07 }}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary-500/30 hover:bg-accent/50 transition-all group"
+                    onClick={() =>
+                      navigate(`/dashboard/farms/${farm.id}/crops`)
+                    }
+                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary-500/30 hover:bg-accent/50 transition-all group cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
+                    {/* Left */}
+                    <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center shrink-0">
                         <Sprout className="w-5 h-5 text-primary-500" />
                       </div>
-                      <div>
-                        <p className="font-semibold text-foreground text-sm">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground text-sm truncate">
                           {farm.farmName}
                         </p>
-                        <div className="flex items-center gap-3 mt-0.5">
+                        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <MapPin className="w-3 h-3" />
                             {farm.location}
                           </span>
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="w-3 h-3" />
-                            {farm.season ?? "N/A"}
-                          </span>
+                          {farm.season && (
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Calendar className="w-3 h-3" />
+                              {farm.season}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    {/* Right */}
+                    <div className="flex items-center gap-3 shrink-0">
                       <div className="text-right hidden sm:block">
                         <p className="text-sm font-semibold text-foreground">
-                          {farm.areaInAcres} ha
+                          {farm.areaInAcres} ac
                         </p>
-                        <Badge
-                          variant="secondary"
-                          className="text-xs bg-primary-500/10 text-primary-600 dark:text-primary-400"
-                        >
-                          {farm.cropType}
-                        </Badge>
+                        {farm.cropType && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs bg-primary-500/10 text-primary-600 dark:text-primary-400"
+                          >
+                            {farm.cropType}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="hidden sm:block text-right">
+                        <p className="text-xs text-primary-500 font-medium">
+                          View Crops
+                        </p>
                       </div>
                       <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
                     </div>
@@ -230,12 +247,17 @@ export default function FarmerDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 {
                   label: "Add New Farm",
                   icon: "🌾",
                   to: ROUTES.FARMER_ADD_FARM,
+                },
+                {
+                  label: "My Claims",
+                  icon: "📋",
+                  to: ROUTES.FARMER_CLAIMS,
                 },
                 {
                   label: "View Profile",

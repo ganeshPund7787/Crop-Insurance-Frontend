@@ -48,11 +48,15 @@ export const ROUTES = {
   FARMER_PROFILE: "/dashboard/profile",
   FARMER_ADD_FARM: "/dashboard/add-farm",
   FARMER_CHANGE_PASSWORD: "/dashboard/change-password",
+  FARMER_CLAIMS: "/dashboard/farms/:id/crops",
+  FARMER_NEW_CLAIM: "/dashboard/claims/new",
+  FARMER_FARM_CROPS: "/dashboard/farms/:id/crops",
 
   // Admin
   ADMIN_DASHBOARD: "/admin",
   ADMIN_FARMERS: "/admin/farmers",
   ADMIN_CHANGE_PASSWORD: "/admin/change-password",
+  ADMIN_AI_ANALYSIS: "/admin/ai",
 
   // Agent
   AGENT_DASHBOARD: "/agent",
@@ -63,3 +67,13 @@ export const ROUTES = {
   AGENT_FARMERS: "/agent/farmers",
   AGENT_CHANGE_PASSWORD: "/agent/change-password",
 } as const;
+
+export const DAMAGE_TYPES: Record<number, string> = {
+  0: "Flood",
+  1: "Drought",
+  2: "Pest / Disease",
+  3: "Fire",
+  4: "Hail",
+  5: "Storm / Cyclone",
+  6: "Other",
+};

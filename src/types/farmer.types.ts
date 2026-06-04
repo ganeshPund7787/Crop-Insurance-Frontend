@@ -1,5 +1,51 @@
+// ── Claims ─────────────────────────────────────────────────
+export type FarmerClaimStatus =
+  | "Submitted"
+  | "UnderReview"
+  | "Assigned"
+  | "UnderInspection"
+  | "Approved"
+  | "Rejected"
+  | "Closed";
+
+export interface FarmerClaim {
+  id: string;
+  claimNumber: string;
+  status: FarmerClaimStatus;
+  statusDescription: string;
+  estimatedLossAmount: number;
+  approvedAmount?: number | null;
+  rejectionReason?: string | null;
+  reviewedAtUtc?: string | null;
+  hasInspection: boolean;
+  nextStep: string;
+}
+
+export interface FarmerClaimsListResponse {
+  success: boolean;
+  message: string;
+  data: FarmerClaim[];
+  errors: string[];
+}
+
+export interface FarmerClaimDetailResponse {
+  success: boolean;
+  message: string;
+  data: FarmerClaim;
+  errors: string[];
+}
+
+export interface SubmitClaimPayload {
+  cropId: string;
+  damageType: number;
+  damageDescription: string;
+  estimatedLossAmount: number;
+  incidentDate: string;
+}
+
 export interface Farm {
   farmId: string;
+  id: string;
   farmName: string;
   location: string;
   areaInAcres: number;
@@ -40,4 +86,15 @@ export interface FarmerProfileResponse {
   message: string;
   data: FarmerProfile;
   errors: string[];
+}
+
+export interface CropType {
+  id: string;
+  expectedHarvestDate: Date;
+  cropName: string;
+  season: string;
+  status: string;
+  expectedYieldTons: number;
+  sowingDate: Date;
+
 }
