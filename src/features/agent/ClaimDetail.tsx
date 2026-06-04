@@ -138,8 +138,9 @@ export default function AgentClaimDetail() {
   // ── Helpers ────────────────────────────────────────────
   // Get the latest scheduled inspection (for findings)
   const scheduledInspection = claim?.inspections?.find(
-    (i) => i.status === "Scheduled",
+    (i) => i.status?.toLowerCase() === "scheduled",
   );
+
   const latestInspection =
     claim?.inspections?.[(claim.inspections.length ?? 1) - 1];
 
@@ -246,14 +247,39 @@ export default function AgentClaimDetail() {
   }
 
   // ── Action visibility ──────────────────────────────────
+  // const status = claim.status?.toLowerCase().trim();
+  // const canAssign = status === "submitted"; // ← was 'pending'
+  // const canSchedule = status === "assigned";
+  // const canAddFindings = status === "underinspection" && !!scheduledInspection;
+  // const canApprove = status === "underinspection";
+  // const isTerminal = ["approved", "rejected", "closed"].includes(status);
+
   // ── Action visibility ──────────────────────────────────
   const status = claim.status?.toLowerCase().trim();
-  const canAssign = status === "submitted"; // ← was 'pending'
-  const canSchedule = status === "assigned";
+
+  // Assign: claim just submitted
+  const canAssign = status === "submitted";
+
+  // Schedule: after agent assigns — backend may return
+  // "assigned" OR "underreview" depending on your API
+  const canSchedule = status === "assigned" || status === "underreview";
+
+  // Add findings: only when a Scheduled inspection exists
   const canAddFindings = status === "underinspection" && !!scheduledInspection;
+
+  // Approve: claim is under inspection
   const canApprove = status === "underinspection";
+
+  // Terminal: no actions available
   const isTerminal = ["approved", "rejected", "closed"].includes(status);
 
+  console.log("status after assign:", status, {
+    canAssign,
+    canSchedule,
+    canAddFindings,
+    canApprove,
+    isTerminal,
+  });
   return (
     <div className="max-w-4xl mx-auto space-y-5">
       {/* ── Header ── */}

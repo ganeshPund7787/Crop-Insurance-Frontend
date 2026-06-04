@@ -191,8 +191,8 @@ export default function AgentFarmers() {
                     <div className="flex items-center gap-1.5">
                       <Sprout className="w-3.5 h-3.5 text-primary-500" />
                       <span className="text-xs font-medium text-muted-foreground">
-                        {farmer.farmsCount ?? 0} farm
-                        {(farmer.farmsCount ?? 0) !== 1 ? "s" : ""}
+                        {farmer.areaInAcres ?? 0} farm
+                        {(farmer.areaInAcres ?? 0) !== 1 ? "s" : ""}
                       </span>
                     </div>
                     <Badge
@@ -267,8 +267,8 @@ export default function AgentFarmers() {
                   {
                     icon: Sprout,
                     label: "Total Farms",
-                    value: `${selected.farmsCount ?? 0} registered farm${
-                      (selected.farmsCount ?? 0) !== 1 ? "s" : ""
+                    value: `${selected.areaInAcres ?? 0} registered farm${
+                      (selected.areaInAcres ?? 0) !== 1 ? "s" : ""
                     }`,
                   },
                 ].map((row) => (

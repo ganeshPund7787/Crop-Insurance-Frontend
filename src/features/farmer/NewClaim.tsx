@@ -346,7 +346,7 @@ export default function FarmerNewClaim() {
                         </FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                           disabled={!selectedid || cropsLoading}
                         >
                           <FormControl>
