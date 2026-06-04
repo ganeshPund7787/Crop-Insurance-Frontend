@@ -48,10 +48,10 @@ export const ROUTES = {
   FARMER_PROFILE: "/dashboard/profile",
   FARMER_ADD_FARM: "/dashboard/add-farm",
   FARMER_CHANGE_PASSWORD: "/dashboard/change-password",
-  FARMER_CLAIMS: "/dashboard/farms/:id/crops",
+  FARMER_FARM_CROPS: "/dashboard/farms/:farmId/crops",
+  FARMER_CLAIMS: "/dashboard/claims",
   FARMER_NEW_CLAIM: "/dashboard/claims/new",
-  FARMER_FARM_CROPS: "/dashboard/farms/:id/crops",
-
+  
   // Admin
   ADMIN_DASHBOARD: "/admin",
   ADMIN_FARMERS: "/admin/farmers",

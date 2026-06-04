@@ -29,15 +29,17 @@ export const farmerService = {
   },
 
   // ── Crops ──────────────────────────────────────────────
-  getCrops: async (farmId: string): Promise<CropsListResponse> => {
+  getCrops: async (id: string): Promise<CropsListResponse> => {
     const { data } = await api.get<CropsListResponse>(
-      `/api/farmer/farms/${farmId}/crops`,
+      `/api/farmer/farms/${id}/crops`,
     );
+    console.log("Response : /api/farmer/farms/${id}/crops = ", data);
     return data;
   },
 
-  addCrop: async (farmId: string, payload: AddCropPayload): Promise<void> => {
-    await api.post(`/api/farmer/farms/${farmId}/crops`, payload);
+  addCrop: async (id: string, payload: AddCropPayload): Promise<void> => {
+    await api.post(`/api/farmer/farms/${id}/crops`, payload);
+    console.log("id & Payload : ", id, payload);
   },
 
   // ── Claims ─────────────────────────────────────────────

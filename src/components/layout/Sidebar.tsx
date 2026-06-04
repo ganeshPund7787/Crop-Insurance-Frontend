@@ -1,5 +1,3 @@
-
-
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sprout,
+  Archive,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -33,7 +32,12 @@ const navItems = [
     to: ROUTES.FARMER_DASHBOARD,
     end: true,
   },
-  { label: "My Profile", icon: User, to: ROUTES.FARMER_PROFILE, end: false },
+  {
+    label: "My Claims",
+    to: ROUTES.FARMER_CLAIMS,
+    icon: Archive,
+    end: true,
+  },
   { label: "Add Farm", icon: Plus, to: ROUTES.FARMER_ADD_FARM, end: false },
   {
     label: "Change Password",
@@ -41,6 +45,7 @@ const navItems = [
     to: ROUTES.FARMER_CHANGE_PASSWORD,
     end: false,
   },
+  { label: "My Profile", icon: User, to: ROUTES.FARMER_PROFILE, end: false },
 ];
 
 interface SidebarProps {

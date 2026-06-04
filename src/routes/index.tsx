@@ -110,7 +110,7 @@ const router = createBrowserRouter([
                 ),
               },
               {
-                path: ROUTES.FARMER_CLAIMS,
+                path: ROUTES.FARMER_CLAIMS, // now "/dashboard/claims" ✅
                 element: (
                   <Wrap>
                     <FarmerClaims />
@@ -126,7 +126,7 @@ const router = createBrowserRouter([
                 ),
               },
               {
-                path: ROUTES.FARMER_FARM_CROPS, // '/dashboard/farms/:farmId/crops'
+                path: ROUTES.FARMER_FARM_CROPS, // now "/dashboard/farms/:farmId/crops" ✅
                 element: (
                   <Wrap>
                     <FarmCrops />

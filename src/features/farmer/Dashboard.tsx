@@ -171,12 +171,14 @@ export default function FarmerDashboard() {
               <div className="space-y-3">
                 {profile.farms.map((farm, i) => (
                   <motion.div
-                    key={farm.farmId}
+                    key={farm.id}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 + i * 0.07 }}
                     onClick={() =>
-                      navigate(`/dashboard/farms/${farm.id}/crops`)
+                      navigate(
+                        `/dashboard/farms/${farm.farmId ?? farm.id}/crops`,
+                      )
                     }
                     className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary-500/30 hover:bg-accent/50 transition-all group cursor-pointer"
                   >

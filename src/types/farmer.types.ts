@@ -88,6 +88,7 @@ export interface FarmerProfileResponse {
   errors: string[];
 }
 
+// Crops
 export interface CropType {
   id: string;
   expectedHarvestDate: Date;
@@ -96,5 +97,19 @@ export interface CropType {
   status: string;
   expectedYieldTons: number;
   sowingDate: Date;
+}
 
+export interface AddCropPayload {
+  cropName: string;
+  season: string;
+  expectedYieldTons: number;
+  sowingDate: string; // ✅ was Date, caused serialization issues
+  expectedHarvestDate: string; // ✅ was Date
+}
+
+export interface CropsListResponse {
+  success: boolean;
+  message: string;
+  data: CropType[];
+  errors: string[];
 }

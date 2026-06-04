@@ -47,7 +47,7 @@ import toast from "react-hot-toast";
 
 // ── Zod schema ─────────────────────────────────────────────
 const newClaimSchema = z.object({
-  farmId: z.string().min(1, "Please select a farm"),
+  id: z.string().min(1, "Please select a farm"),
 
   cropId: z.string().min(1, "Please select a crop"),
 
@@ -101,7 +101,7 @@ export default function FarmerNewClaim() {
   // Pre-fill from URL params (coming from FarmCrops page)
   const prefilledCropId = searchParams.get("cropId") ?? "";
   const prefilledCropName = searchParams.get("cropName") ?? "";
-  const prefilledFarmId = searchParams.get("farmId") ?? "";
+  const prefilledid = searchParams.get("id") ?? "";
 
   const { data: profile } = useFarmerProfile();
   const farms = profile?.farms ?? [];
@@ -109,7 +109,7 @@ export default function FarmerNewClaim() {
   const form = useForm<NewClaimForm>({
     resolver: zodResolver(newClaimSchema),
     defaultValues: {
-      farmId: prefilledFarmId,
+      id: prefilledid,
       cropId: prefilledCropId,
       damageType: "",
       damageDescription: "",
@@ -118,26 +118,42 @@ export default function FarmerNewClaim() {
     },
   });
 
-  const selectedFarmId = form.watch("farmId");
+  const selectedid = form.watch("id");
 
   // Load crops for selected farm
   const { data: cropsRes, isLoading: cropsLoading } = useQuery({
-    queryKey: ["farmer", "crops", selectedFarmId],
-    queryFn: () => farmerService.getCrops(selectedFarmId),
-    enabled: !!selectedFarmId,
-    select: (r) => r.data,
+    queryKey: ["farmer", "crops", selectedid],
+    queryFn: () => farmerService.getCrops(selectedid),
+    enabled: !!selectedid,
+    select: (r: any) => r.data,
   });
 
   const crops = cropsRes ?? [];
 
   // Reset cropId when farm changes
   useEffect(() => {
-    if (selectedFarmId && selectedFarmId !== prefilledFarmId) {
+    if (selectedid && selectedid !== prefilledid) {
       form.setValue("cropId", "");
     }
-  }, [selectedFarmId]);
+  }, [selectedid]);
 
   // ── Submit mutation ────────────────────────────────────
+  // const { mutate: submitClaim, isPending } = useMutation({
+  //   mutationFn: (values: NewClaimForm) =>
+  //     farmerService.submitClaim({
+  //       cropId: values.cropId,
+  //       damageType: Number(values.damageType),
+  //       damageDescription: values.damageDescription,
+  //       estimatedLossAmount: Number(values.estimatedLossAmount),
+  //       incidentDate: new Date(values.incidentDate).toISOString(),
+  //     }),
+  //   onSuccess: (res) => {
+  //     setClaimNumber(res.data.claimNumber);
+  //     setSubmitted(true);
+  //     queryClient.invalidateQueries({ queryKey: ["farmer", "claims"] });
+  //   },
+  //   onError: () => toast.error("Failed to submit claim. Please try again."),
+  // });
   const { mutate: submitClaim, isPending } = useMutation({
     mutationFn: (values: NewClaimForm) =>
       farmerService.submitClaim({
@@ -145,7 +161,8 @@ export default function FarmerNewClaim() {
         damageType: Number(values.damageType),
         damageDescription: values.damageDescription,
         estimatedLossAmount: Number(values.estimatedLossAmount),
-        incidentDate: new Date(values.incidentDate).toISOString(),
+        // ✅ Fix: append T00:00:00 before ISO conversion to treat as local time
+        incidentDate: dayjs(values.incidentDate).toISOString(),
       }),
     onSuccess: (res) => {
       setClaimNumber(res.data.claimNumber);
@@ -277,7 +294,7 @@ export default function FarmerNewClaim() {
                   {/* Farm selector */}
                   <FormField
                     control={form.control}
-                    name="farmId"
+                    name="id"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-medium">
@@ -300,10 +317,7 @@ export default function FarmerNewClaim() {
                               </div>
                             ) : (
                               farms.map((farm) => (
-                                <SelectItem
-                                  key={farm.farmId}
-                                  value={farm.farmId}
-                                >
+                                <SelectItem key={farm.id} value={farm.id}>
                                   <div className="flex items-center gap-2">
                                     <span>{farm.farmName}</span>
                                     <span className="text-muted-foreground text-xs">
@@ -333,7 +347,7 @@ export default function FarmerNewClaim() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          disabled={!selectedFarmId || cropsLoading}
+                          disabled={!selectedid || cropsLoading}
                         >
                           <FormControl>
                             <SelectTrigger className="h-11">
@@ -345,7 +359,7 @@ export default function FarmerNewClaim() {
                               ) : (
                                 <SelectValue
                                   placeholder={
-                                    !selectedFarmId
+                                    !selectedid
                                       ? "Select a farm first"
                                       : crops.length === 0
                                         ? "No crops for this farm"
