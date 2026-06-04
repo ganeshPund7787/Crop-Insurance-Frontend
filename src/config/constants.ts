@@ -51,7 +51,8 @@ export const ROUTES = {
   FARMER_FARM_CROPS: "/dashboard/farms/:farmId/crops",
   FARMER_CLAIMS: "/dashboard/claims",
   FARMER_NEW_CLAIM: "/dashboard/claims/new",
-  
+  FARMER_AI_RISK: "/dashboard/ai-risk",
+
   // Admin
   ADMIN_DASHBOARD: "/admin",
   ADMIN_FARMERS: "/admin/farmers",

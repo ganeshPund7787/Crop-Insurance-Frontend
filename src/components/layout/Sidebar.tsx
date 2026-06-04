@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Sprout,
   Archive,
+  Brain,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -38,12 +39,19 @@ const navItems = [
     icon: Archive,
     end: true,
   },
+
   { label: "Add Farm", icon: Plus, to: ROUTES.FARMER_ADD_FARM, end: false },
   {
     label: "Change Password",
     icon: KeyRound,
     to: ROUTES.FARMER_CHANGE_PASSWORD,
     end: false,
+  },
+  {
+    to: ROUTES.FARMER_AI_RISK,
+    label: "AI Risk Summary",
+    icon: Brain,
+    end: true,
   },
   { label: "My Profile", icon: User, to: ROUTES.FARMER_PROFILE, end: false },
 ];

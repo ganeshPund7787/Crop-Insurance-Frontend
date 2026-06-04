@@ -26,6 +26,7 @@ const AppLayout = lazy(() => import("../components/layout/AppLayout"));
 const FarmerClaims = lazy(() => import("../features/farmer/Claims"));
 const FarmerNewClaim = lazy(() => import("../features/farmer/NewClaim"));
 const FarmCrops = lazy(() => import("../features/farmer/FarmCrops"));
+const AiRiskSummary = lazy(() => import("../features/farmer/AiRiskSummary"));
 
 // ── Admin pages ────────────────────────────────────────────
 const AdminDashboard = lazy(() => import("../features/admin/Dashboard"));
@@ -90,6 +91,14 @@ const router = createBrowserRouter([
                 element: (
                   <Wrap>
                     <FarmerProfile />
+                  </Wrap>
+                ),
+              },
+              {
+                path: ROUTES.FARMER_AI_RISK,
+                element: (
+                  <Wrap>
+                    <AiRiskSummary />
                   </Wrap>
                 ),
               },
