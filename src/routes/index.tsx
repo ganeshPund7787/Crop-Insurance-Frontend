@@ -35,6 +35,7 @@ const AdminLayout = lazy(() => import("../components/layout/AdminLayout"));
 const AdminAiAnalysis = lazy(
   () => import("../features/admin/AiAnalysis/index"),
 );
+const AgentsList = lazy(() => import("../features/admin/AgentsList"));
 
 // ── Agent pages ────────────────────────────────────────────
 const AgentDashboard = lazy(() => import("../features/agent/Dashboard"));
@@ -168,6 +169,14 @@ const router = createBrowserRouter([
                 element: (
                   <Wrap>
                     <AdminDashboard />
+                  </Wrap>
+                ),
+              },
+              {
+                path: ROUTES.ADMIN_AGENTS,
+                element: (
+                  <Wrap>
+                    <AgentsList />
                   </Wrap>
                 ),
               },

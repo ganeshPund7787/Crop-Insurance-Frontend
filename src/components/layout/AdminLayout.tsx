@@ -10,6 +10,7 @@ const PAGE_TITLES: Record<string, string> = {
   [ROUTES.ADMIN_DASHBOARD]: "Admin Dashboard",
   [ROUTES.ADMIN_FARMERS]: "Farmers Management",
   [ROUTES.ADMIN_CHANGE_PASSWORD]: "Change Password",
+  [ROUTES.ADMIN_AGENTS]: "Agents Management",
 };
 
 export default function AdminLayout() {

@@ -58,6 +58,7 @@ export const ROUTES = {
   ADMIN_FARMERS: "/admin/farmers",
   ADMIN_CHANGE_PASSWORD: "/admin/change-password",
   ADMIN_AI_ANALYSIS: "/admin/ai",
+  ADMIN_AGENTS: "/admin/agents",
 
   // Agent
   AGENT_DASHBOARD: "/agent",

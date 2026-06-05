@@ -38,6 +38,12 @@ const navItems = [
     end: false,
   },
   {
+    label: "Agents",
+    icon: ShieldCheck,
+    to: ROUTES.ADMIN_AGENTS,
+    end: false,
+  },
+  {
     label: "Change Password",
     icon: KeyRound,
     to: ROUTES.ADMIN_CHANGE_PASSWORD,

@@ -24,3 +24,25 @@ export interface AdminStats {
   activePolicies: number;
   totalClaimsPaid: number;
 }
+
+export interface AgentListItem {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  agentCode?: string;
+  licenseNumber?: string;
+  assignedDistrict?: string;
+  isVerified: boolean;
+  isActive?: boolean;
+  totalClaimsHandled: number;
+  createdAtUtc?: string;
+  lastLoginAtUtc?: string | null;
+}
+
+export interface AgentsListResponse {
+  success: boolean;
+  message: string;
+  data: AgentListItem[];
+  errors: string[];
+}
