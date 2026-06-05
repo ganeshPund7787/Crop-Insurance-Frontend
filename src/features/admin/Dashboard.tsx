@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -35,7 +34,6 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { adminService } from "../../services/admin.service";
-import { useAuth } from "../../hooks/useAuth"; // adjust path as needed
 import { getInitials } from "../../lib/utils";
 import type { FarmerListItem } from "../../types/admin.types";
 import Loader from "../../components/common/Loader";
@@ -63,9 +61,6 @@ export default function FarmersList() {
   const [sortKey, setSortKey] = useState<SortKey>("createdAtUtc");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [selected, setSelected] = useState<FarmerListItem | null>(null);
-
-  const navigate = useNavigate();
-  const { user } = useAuth();
 
   const { data: res, isLoading } = useQuery({
     queryKey: ["admin", "farmers"],

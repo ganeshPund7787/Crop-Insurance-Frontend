@@ -12,7 +12,7 @@ import {
   KeyRound,
   ArrowLeft,
 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import {
   Card,
@@ -116,7 +115,6 @@ const itemVariants = {
 
 export default function ChangePassword() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { role } = useAuth();
   const { mutate: changePassword, isPending } = useChangePasswordMutation();
 

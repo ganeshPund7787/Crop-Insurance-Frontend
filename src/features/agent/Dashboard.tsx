@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import {
   FileText,
   ClipboardCheck,
-  TrendingUp,
   ArrowRight,
   Clock,
   CheckCircle,

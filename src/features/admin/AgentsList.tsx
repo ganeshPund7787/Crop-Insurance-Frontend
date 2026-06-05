@@ -96,7 +96,6 @@ export default function AgentsList() {
     isLoading,
     isError,
     refetch,
-    isRefetching,
   } = useQuery({
     queryKey: ["admin", "agents"],
     queryFn: adminService.getAllAgents,

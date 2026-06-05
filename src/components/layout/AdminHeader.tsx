@@ -1,4 +1,4 @@
-import { Moon, Sun, Bell, Menu } from "lucide-react";
+import { Moon, Sun, Menu } from "lucide-react";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default function AdminHeader({
   pageTitle,
 }: AdminHeaderProps) {
   const { theme, toggleTheme } = useTheme();
-  const { user, logout, refreshToken } = useAuth();
+  const { user } = useAuth();
 
   const navigate = useNavigate();
   const { handleLogout, isLoggingOut } = useLogout();

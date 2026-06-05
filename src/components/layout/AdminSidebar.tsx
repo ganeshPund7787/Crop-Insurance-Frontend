@@ -66,8 +66,8 @@ export default function AdminSidebar({
   collapsed,
   onToggle,
 }: AdminSidebarProps) {
-  const { user, logout, refreshToken } = useAuth();
-  const { handleLogout, isLoggingOut } = useLogout();
+  const { user } = useAuth();
+  const { handleLogout } = useLogout();
 
   return (
     <TooltipProvider delayDuration={0}>

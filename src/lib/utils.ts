@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { AxiosError } from "axios";
 import dayjsimported from "dayjs";
 
 // ── Shadcn/ui utility ──────────────────────────────────────

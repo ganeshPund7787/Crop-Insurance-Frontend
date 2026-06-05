@@ -8,7 +8,6 @@ import {
   Calendar,
   Shield,
   Sprout,
-  Edit,
   CheckCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

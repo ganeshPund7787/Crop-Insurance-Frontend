@@ -247,14 +247,6 @@ export default function AgentClaimDetail() {
   }
 
   // ── Action visibility ──────────────────────────────────
-  // const status = claim.status?.toLowerCase().trim();
-  // const canAssign = status === "submitted"; // ← was 'pending'
-  // const canSchedule = status === "assigned";
-  // const canAddFindings = status === "underinspection" && !!scheduledInspection;
-  // const canApprove = status === "underinspection";
-  // const isTerminal = ["approved", "rejected", "closed"].includes(status);
-
-  // ── Action visibility ──────────────────────────────────
   const status = claim.status?.toLowerCase().trim();
 
   // Assign: claim just submitted
@@ -545,7 +537,7 @@ export default function AgentClaimDetail() {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-3">
-              {claim.inspections.map((ins, i) => (
+              {claim.inspections.map((ins) => (
                 <div
                   key={ins.id}
                   className="p-4 rounded-xl border border-border bg-muted/20"

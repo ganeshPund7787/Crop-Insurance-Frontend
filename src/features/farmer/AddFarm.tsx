@@ -8,8 +8,6 @@ import {
   Sprout,
   MapPin,
   Ruler,
-  Wheat,
-  CloudSun,
   Mountain,
   ArrowLeft,
   CheckCircle,

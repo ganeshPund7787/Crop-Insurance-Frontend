@@ -11,7 +11,7 @@ import {
   ChevronDown,
   Eye,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,7 @@ export default function FarmersList() {
 
   // Unique states for filter
   const uniqueStates = Array.from(
-    new Set(farmers.map((f) => f.state).filter(Boolean)),
+    new Set(farmers.map((f: any) => f.state).filter(Boolean)),
   ) as string[];
 
   // Filter + sort

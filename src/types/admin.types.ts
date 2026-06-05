@@ -3,12 +3,16 @@ export interface FarmerListItem {
   fullName: string;
   email: string;
   phoneNumber?: string;
+  district: string;
+  userId: string;
+  state: string;
   role: string;
   isActive: boolean; // ← NEW
   emailVerified: boolean; // ← NEW
   lastLoginAtUtc?: string | null; // ← NEW
   farmsCount: number;
   createdAtUtc: string; // ← was createdAt
+  createdAt: string;
   // Note: state, district, farmsCount not returned by this API
 }
 
