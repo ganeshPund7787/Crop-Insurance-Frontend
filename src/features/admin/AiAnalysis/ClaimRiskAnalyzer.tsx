@@ -154,13 +154,28 @@ export default function ClaimRiskAnalyzer() {
     }
   };
 
-  const riskLevel = result?.riskLevel as keyof typeof riskConfig | undefined;
-  const recommendation = result?.recommendation as
+  // const riskLevel = result?.riskLevel as keyof typeof riskConfig | undefined;
+  // const recommendation = result?.recommendation as
+  //   | keyof typeof recommendationConfig
+  //   | undefined;
+  // const riskStyle = riskLevel ? riskConfig[riskLevel] : null;
+  // const recConfig = recommendation
+  //   ? recommendationConfig[recommendation]
+  //   : null;
+  // const RecIcon = recConfig?.icon ?? Info;
+
+  const riskLevel = result?.riskLevel?.trim() as
+    | keyof typeof riskConfig
+    | undefined;
+  const recommendation = result?.recommendation?.trim() as
     | keyof typeof recommendationConfig
     | undefined;
-  const riskStyle = riskLevel ? riskConfig[riskLevel] : null;
+  const riskStyle = riskLevel
+    ? (riskConfig[riskLevel] ?? riskConfig["Medium"])
+    : null;
   const recConfig = recommendation
-    ? recommendationConfig[recommendation]
+    ? (recommendationConfig[recommendation] ??
+      recommendationConfig["Investigate"])
     : null;
   const RecIcon = recConfig?.icon ?? Info;
 
@@ -452,7 +467,7 @@ export default function ClaimRiskAnalyzer() {
 
       {/* ── Result Panel ── */}
       <AnimatePresence>
-        {result && riskStyle && recConfig && (
+        {result && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -468,14 +483,14 @@ export default function ClaimRiskAnalyzer() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Risk Score */}
               <div
-                className={`p-5 rounded-2xl border ${riskStyle.border} ${riskStyle.bg}`}
+                className={`p-5 rounded-2xl border ${riskStyle?.border ?? "border-border"} ${riskStyle?.bg ?? "bg-muted/40"}`}
               >
                 <p className="text-xs font-medium text-muted-foreground mb-2">
                   RISK SCORE
                 </p>
                 <div className="flex items-end gap-2 mb-3">
                   <span
-                    className={`font-display text-4xl font-bold ${riskStyle.color}`}
+                    className={`font-display text-4xl font-bold ${riskStyle?.color ?? "text-foreground"}`}
                   >
                     {result.riskScore}
                   </span>
@@ -483,18 +498,17 @@ export default function ClaimRiskAnalyzer() {
                     / 100
                   </span>
                 </div>
-                {/* Score bar */}
                 <div className="w-full h-2 rounded-full bg-border overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${result.riskScore}%` }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
-                    className={`h-full rounded-full ${riskStyle.bar}`}
+                    className={`h-full rounded-full ${riskStyle?.bar ?? "bg-primary-500"}`}
                   />
                 </div>
                 <div className="mt-2">
                   <Badge
-                    className={`${riskStyle.bg} ${riskStyle.color} border-0 text-xs font-semibold`}
+                    className={`${riskStyle?.bg ?? "bg-muted"} ${riskStyle?.color ?? "text-foreground"} border-0 text-xs font-semibold`}
                   >
                     {result.riskLevel} Risk
                   </Badge>
@@ -503,15 +517,17 @@ export default function ClaimRiskAnalyzer() {
 
               {/* Recommendation */}
               <div
-                className={`p-5 rounded-2xl border ${recConfig.bg} border-border`}
+                className={`p-5 rounded-2xl border ${recConfig?.bg ?? "bg-muted/40"} border-border`}
               >
                 <p className="text-xs font-medium text-muted-foreground mb-2">
                   AI RECOMMENDATION
                 </p>
                 <div className="flex items-center gap-3 mb-3">
-                  <RecIcon className={`w-8 h-8 ${recConfig.color}`} />
+                  <RecIcon
+                    className={`w-8 h-8 ${recConfig?.color ?? "text-foreground"}`}
+                  />
                   <span
-                    className={`font-display text-2xl font-bold ${recConfig.color}`}
+                    className={`font-display text-2xl font-bold ${recConfig?.color ?? "text-foreground"}`}
                   >
                     {result.recommendation}
                   </span>
@@ -523,7 +539,7 @@ export default function ClaimRiskAnalyzer() {
             </div>
 
             {/* ── Red Flags ── */}
-            {result.redFlags.length > 0 && (
+            {result.redFlags?.length > 0 && (
               <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20">
                 <div className="flex items-center gap-2 mb-3">
                   <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -549,7 +565,7 @@ export default function ClaimRiskAnalyzer() {
             )}
 
             {/* ── Positive Indicators ── */}
-            {result.positiveIndicators.length > 0 && (
+            {result.positiveIndicators?.length > 0 && (
               <div className="p-4 rounded-2xl bg-green-500/5 border border-green-500/20">
                 <div className="flex items-center gap-2 mb-3">
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -571,6 +587,18 @@ export default function ClaimRiskAnalyzer() {
                     </motion.li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {/* ── Raw AI Response fallback ── */}
+            {result.riskScore === 0 && result.rawAiResponse && (
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border">
+                <p className="text-xs font-semibold text-muted-foreground mb-2">
+                  RAW AI RESPONSE
+                </p>
+                <p className="text-sm text-foreground whitespace-pre-wrap">
+                  {result.rawAiResponse}
+                </p>
               </div>
             )}
           </motion.div>
