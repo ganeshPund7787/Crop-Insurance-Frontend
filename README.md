@@ -1,75 +1,195 @@
-# React + TypeScript + Vite
+# 🌾 CropShield — Crop Insurance & Farmer Risk Intelligence Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![CropShield](https://img.shields.io/badge/CropShield-v1.0.0-green?style=for-the-badge)
+![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?style=for-the-badge&logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-8.0-purple?style=for-the-badge&logo=vite)
+![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue?style=for-the-badge&logo=githubactions)
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 📌 Overview
 
-## React Compiler
+**CropShield** is a full-stack Crop Insurance and Farmer Risk Intelligence Platform designed to help farmers register, manage their farms, file insurance claims, and receive AI-powered risk assessments. Admins and agents can monitor farmers, handle claims, and view dashboards with real-time analytics.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+---
 
-Note: This will impact Vite dev & build performances.
+## ✨ Features
 
-## Expanding the ESLint configuration
+### 👨‍🌾 Farmer
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Register & manage farm profile
+- Add crops and farm details
+- File and track insurance claims
+- View AI-powered risk summary for their farm
+- Real-time crop inspection status
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 🛡️ Agent
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- View and manage assigned farmer claims
+- Conduct crop inspections
+- Update claim statuses
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 🏛️ Admin
+
+- Full dashboard with farmer & agent analytics
+- Manage farmers and agents list
+- Monitor all claims across the platform
+- AI risk analysis overview
+
+---
+
+## 🛠️ Tech Stack
+
+| Category         | Technology              |
+| ---------------- | ----------------------- |
+| Framework        | React 19                |
+| Language         | TypeScript 6            |
+| Build Tool       | Vite 8                  |
+| Styling          | Tailwind CSS v3         |
+| UI Components    | Shadcn/UI + Radix UI    |
+| State Management | Redux Toolkit           |
+| Server State     | TanStack React Query v5 |
+| Forms            | React Hook Form + Zod   |
+| HTTP Client      | Axios                   |
+| Charts           | Recharts                |
+| Animations       | Framer Motion           |
+| Routing          | React Router DOM v7     |
+| Deployment       | Vercel                  |
+| CI/CD            | GitHub Actions          |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- npm
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/ganeshPund7787/Crop-Insurance-Frontend.git
+
+# Navigate to project
+cd Crop-Insurance-Frontend
+
+# Install dependencies
+npm install
+
+# Copy env file
+cp .env.example .env
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Environment Variables
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create a `.env` file in the root (never commit this):
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_API_BASE_URL=https://your-backend-api-url
+VITE_APP_NAME=CropShield
+VITE_APP_VERSION=1.0.0
 ```
+
+### Run Development Server
+
+```bash
+npm run dev
+```
+
+App runs at `http://localhost:5173`
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   └── ui/               # Reusable Shadcn UI components
+├── features/
+│   ├── admin/            # Admin dashboard, farmers list, agents list
+│   ├── agent/            # Agent claim management, inspections
+│   ├── auth/             # Login, Register, Change Password
+│   └── farmer/           # Farm management, claims, AI risk summary
+├── hooks/                # Custom React hooks
+├── lib/                  # Axios instance, query client, utilities
+├── store/                # Redux store and slices
+└── routes/               # React Router route definitions
+```
+
+---
+
+## 🔄 CI/CD Pipeline
+
+This project uses **GitHub Actions** for automated CI/CD with **Vercel** deployment.
+
+```
+Push to develop  →  Lint + Build  →  Deploy Preview URL
+Push to main     →  Lint + Build  →  Deploy Production URL
+```
+
+### Pipeline Jobs
+
+| Job               | Trigger           | Action                |
+| ----------------- | ----------------- | --------------------- |
+| Lint & Build      | All pushes & PRs  | ESLint + Vite Build   |
+| Deploy Preview    | Push to `develop` | Vercel Preview URL    |
+| Deploy Production | Push to `main`    | Vercel Production URL |
+
+---
+
+## 🐳 Docker Support
+
+```bash
+# Build Docker image
+docker build \
+  --build-arg VITE_API_BASE_URL=https://your-api-url \
+  -t cropshield-frontend .
+
+# Run container
+docker run -p 80:80 cropshield-frontend
+```
+
+---
+
+## 🌿 Branch Strategy
+
+| Branch      | Purpose                           |
+| ----------- | --------------------------------- |
+| `main`      | Production — stable releases only |
+| `develop`   | Development — feature integration |
+| `feature/*` | Individual feature branches       |
+
+---
+
+## 🔗 Related Repositories
+
+| Repo                                                                                 | Description                  |
+| ------------------------------------------------------------------------------------ | ---------------------------- |
+| [Crop-Insurance-Frontend](https://github.com/ganeshPund7787/Crop-Insurance-Frontend) | This repo — React Frontend   |
+| Crop-Insurance-Backend                                                               | ASP.NET Core Web API Backend |
+
+---
+
+## 👨‍💻 Author
+
+**Ganesh Pund**
+
+- GitHub: [@ganeshPund7787](https://github.com/ganeshPund7787)
+- LinkedIn: [linkedin.com/in/ganeshpund](https://linkedin.com/in/ganeshpund)
+
+---
+
+## 📄 License
+
+This project is for educational and portfolio purposes.
